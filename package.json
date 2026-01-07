@@ -1,0 +1,84 @@
+{
+  "name": "classpresso",
+  "version": "1.0.0",
+  "description": "CSS class consolidation tool - compress multiple utility classes into single optimized classes",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.mjs",
+      "require": "./dist/cli.js"
+    },
+    "./scanner": {
+      "types": "./dist/scanner.d.ts",
+      "import": "./dist/scanner.mjs",
+      "require": "./dist/scanner.js"
+    },
+    "./consolidator": {
+      "types": "./dist/consolidator.d.ts",
+      "import": "./dist/consolidator.mjs",
+      "require": "./dist/consolidator.js"
+    },
+    "./transformer": {
+      "types": "./dist/transformer.d.ts",
+      "import": "./dist/transformer.mjs",
+      "require": "./dist/transformer.js"
+    }
+  },
+  "bin": {
+    "classpresso": "./bin/classpresso.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "css",
+    "tailwindcss",
+    "optimization",
+    "class-consolidation",
+    "nextjs",
+    "react",
+    "build-tool",
+    "postcss"
+  ],
+  "author": "Tim Carter",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timclausendev-web/classpresso"
+  },
+  "homepage": "https://classpresso.com",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "glob": "^11.0.0",
+    "postcss": "^8.4.49"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsup": "^8.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^1.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

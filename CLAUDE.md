@@ -84,3 +84,36 @@ The project builds to both ESM and CJS formats via tsup. Entry points are export
 - Main API (`classpresso`)
 - CLI (`classpresso/cli`)
 - Individual core modules (`classpresso/scanner`, `classpresso/consolidator`, `classpresso/transformer`)
+
+## Release Checklist
+
+**IMPORTANT: Before publishing to npm and git, ALWAYS:**
+
+1. **Update README.md** with any new features, changes, or additions
+2. Run `npm run typecheck` - ensure no type errors
+3. Run `npm run test:run` - ensure all tests pass
+4. Run `npm version [patch|minor|major]` - bump version
+5. Commit with descriptive message
+6. Push to git
+7. Run `npm publish`
+
+**Never skip the README update for:**
+- New features or options
+- New framework support
+- API changes
+- Configuration changes
+- Breaking changes
+
+## Testing Frameworks
+
+The `test_libraries/` directory contains test projects for different frameworks:
+- `test_libraries/angular/` - Angular 21 + SSR + Tailwind v4
+
+To test a framework:
+```bash
+cd test_libraries/[framework]
+npm run build
+cd ../..
+npx classpresso analyze --dir test_libraries/[framework]/dist
+npx classpresso optimize --dir test_libraries/[framework]/dist
+```

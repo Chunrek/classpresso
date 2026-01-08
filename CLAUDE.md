@@ -93,9 +93,31 @@ The project builds to both ESM and CJS formats via tsup. Entry points are export
 2. Run `npm run typecheck` - ensure no type errors
 3. Run `npm run test:run` - ensure all tests pass
 4. Run `npm version [patch|minor|major]` - bump version
-5. Commit with descriptive message
-6. Push to git
-7. Run `npm publish`
+5. **Update README.md website link with UTM parameters** (see below)
+6. Commit with descriptive message
+7. Push to git
+8. Run `npm publish`
+
+### UTM Parameters for README.md
+
+The website link in README.md must have UTM parameters added before publishing:
+
+**Before pushing to GitHub**, update the link to:
+```
+https://classpresso.com?utm_source=github&utm_medium=referral&utm_campaign=github-readme
+```
+
+**Before publishing to npm**, update the link to:
+```
+https://classpresso.com?utm_source=npm&utm_medium=referral&utm_campaign=npm-readme
+```
+
+The link is located in the `## Links` section at the bottom of README.md:
+```markdown
+- Website: [https://classpresso.com](https://classpresso.com?utm_source=...)
+```
+
+**After publishing**, revert the link back to plain `https://classpresso.com` to keep the source clean.
 
 **Never skip the README update for:**
 - New features or options
@@ -108,12 +130,17 @@ The project builds to both ESM and CJS formats via tsup. Entry points are export
 
 The `test_libraries/` directory contains test projects for different frameworks:
 - `test_libraries/angular/` - Angular 21 + SSR + Tailwind v4
+- `test_libraries/nextjs_ssr/` - Next.js 15 App Router + Tailwind
+- `test_libraries/sveltekit_ssr/` - SvelteKit 2 + SSR + Tailwind
+- `test_libraries/vite_react/` - Vite 6 + React 19 + Tailwind
+- `test_libraries/vuejs_ssr/` - Nuxt 3 + SSR + Tailwind
+- `test_libraries/quasar_ssr/` - Quasar 2 + SSR (native Quasar classes)
 
 To test a framework:
 ```bash
 cd test_libraries/[framework]
 npm run build
 cd ../..
-npx classpresso analyze --dir test_libraries/[framework]/dist
+npx classpresso analyze --dir test_libraries/[framework]/dist  # or .next, build, etc.
 npx classpresso optimize --dir test_libraries/[framework]/dist
 ```

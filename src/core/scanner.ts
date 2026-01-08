@@ -217,8 +217,10 @@ export function extractClassStrings(
       // Skip dynamic expressions
       if (isDynamicClassString(classString)) continue;
 
-      // Skip if already seen in this file (exact match)
-      const key = `${filePath}:${classString}`;
+      // Skip if already seen at this exact position (same file and character offset)
+      // This allows duplicate strings in the same file (e.g., bundled components)
+      // while avoiding double-counting from overlapping regex patterns
+      const key = `${filePath}:${match.index}:${classString}`;
       if (seen.has(key)) continue;
       seen.add(key);
 

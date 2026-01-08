@@ -93,6 +93,10 @@ function buildMatchPatterns(classString: string): MatchPattern[] {
     { regex: new RegExp(`(\\bclass\\s*=\\s*")${escaped}(")`,'g'), supportsDataAttr: true },
     { regex: new RegExp(`(\\bclass\\s*=\\s*')${escaped}(')`,'g'), supportsDataAttr: true },
 
+    // class:"..." (Vue/Quasar createElement) - no data attr support
+    { regex: new RegExp(`(\\bclass\\s*:\\s*")${escaped}(")`,'g'), supportsDataAttr: false },
+    { regex: new RegExp(`(\\bclass\\s*:\\s*')${escaped}(')`,'g'), supportsDataAttr: false },
+
     // HTML entity encoded: class=&quot;...&quot; - supports data attributes
     { regex: new RegExp(`(class=&quot;)${escaped}(&quot;)`,'g'), supportsDataAttr: true },
     { regex: new RegExp(`(class=&#34;)${escaped}(&#34;)`,'g'), supportsDataAttr: true },

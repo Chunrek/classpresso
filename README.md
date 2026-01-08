@@ -563,25 +563,25 @@ npm run benchmark
 
 ```
 ╔═══════════════════════════════════════════════════════════╗
-║                   CLASSPRESSO RESULTS                      ║
+║                   CLASSPRESSO RESULTS                     ║
 ╠═══════════════════════════════════════════════════════════╣
-║ Files Scanned:                                         45  ║
-║ Files Modified:                                        12  ║
+║ Files Scanned:                                         45 ║
+║ Files Modified:                                        12 ║
 ╠═══════════════════════════════════════════════════════════╣
-║ CLASS CONSOLIDATION                                        ║
-║ Patterns found:                                       234  ║
-║ Patterns consolidated:                                 67  ║
-║ Total occurrences replaced:                           834  ║
+║ CLASS CONSOLIDATION                                       ║
+║ Patterns found:                                       234 ║
+║ Patterns consolidated:                                 67 ║
+║ Total occurrences replaced:                           834 ║
 ╠═══════════════════════════════════════════════════════════╣
-║ BROWSER PERFORMANCE IMPACT                                 ║
-║ Class lookups eliminated:                          12,510  ║
-║ Estimated style recalc improvement:                  ~50%  ║
-║ Estimated First Paint improvement:                   ~42%  ║
+║ BROWSER PERFORMANCE IMPACT                                ║
+║ Class lookups eliminated:                          12,510 ║
+║ Estimated style recalc improvement:                  ~50% ║
+║ Estimated First Paint improvement:                   ~42% ║
 ╠═══════════════════════════════════════════════════════════╣
-║ BONUS: SIZE REDUCTION                                      ║
-║ HTML bytes saved:                                12,450 B  ║
-║ CSS overhead:                                     3,200 B  ║
-║ Net reduction:                                    9,250 B  ║
+║ BONUS: SIZE REDUCTION                                     ║
+║ HTML bytes saved:                                12,450 B ║
+║ CSS overhead:                                     3,200 B ║
+║ Net reduction:                                    9,250 B ║
 ╚═══════════════════════════════════════════════════════════╝
 ```
 
@@ -646,6 +646,6 @@ MIT
 
 ## Links
 
-- Website: [https://classpresso.com](https://classpresso.com)
+- Website: [https://classpresso.com](https://classpresso.com?utm_source=github&utm_medium=referral&utm_campaign=github-readme)
 - GitHub: [https://github.com/timclausendev-web/classpresso](https://github.com/timclausendev-web/classpresso)
 - npm: [https://www.npmjs.com/package/classpresso](https://www.npmjs.com/package/classpresso)

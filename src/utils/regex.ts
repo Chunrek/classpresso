@@ -42,6 +42,12 @@ export const CLASS_PATTERNS = {
 
   // RSC payload: \"className\":\"...\" (escaped JSON in Next.js RSC payloads)
   rscPayload: /\\"className\\"\s*:\s*\\"([^"\\]+)\\"/g,
+
+  // Vue/Quasar createElement: class:"..." (Vue uses 'class' not 'className')
+  vueCreateElementDouble: /\bclass\s*:\s*"([^"]+)"/g,
+
+  // Vue/Quasar createElement: class:'...'
+  vueCreateElementSingle: /\bclass\s*:\s*'([^']+)'/g,
 };
 
 /**
@@ -58,6 +64,8 @@ export const ALL_CLASS_PATTERNS = [
   CLASS_PATTERNS.htmlEntityDouble,
   CLASS_PATTERNS.htmlNumericDouble,
   CLASS_PATTERNS.rscPayload,
+  CLASS_PATTERNS.vueCreateElementDouble,
+  CLASS_PATTERNS.vueCreateElementSingle,
 ];
 
 /**
@@ -165,5 +173,8 @@ export function createReplacementPatterns(original: string): RegExp[] {
     // HTML entity encoded quotes
     new RegExp(`(class=&quot;)${escaped}(&quot;)`, 'g'),
     new RegExp(`(class=&#34;)${escaped}(&#34;)`, 'g'),
+    // Vue/Quasar class: syntax
+    new RegExp(`(\\bclass\\s*:\\s*)"${escaped}"`, 'g'),
+    new RegExp(`(\\bclass\\s*:\\s*)'${escaped}'`, 'g'),
   ];
 }

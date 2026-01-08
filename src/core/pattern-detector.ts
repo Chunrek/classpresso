@@ -53,6 +53,13 @@ export function detectConsolidatablePatterns(
     // Filter by minimum classes
     if (occurrence.classes.length < config.minClasses) continue;
 
+    // Skip patterns that have excluded classes if skipPatternsWithExcludedClasses is enabled
+    // This prevents issues like "hidden md:flex" becoming "_cp-xxx md:flex" where
+    // the consolidated class has display:none that overrides the responsive md:flex
+    if (config.skipPatternsWithExcludedClasses && occurrence.excludedClasses.length > 0) {
+      continue;
+    }
+
     // Generate hash name
     const hashName = generateHashName(
       occurrence.normalizedKey,

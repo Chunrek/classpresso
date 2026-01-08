@@ -30,6 +30,10 @@ export interface ClasspressoConfig {
   excludeDynamicPatterns: boolean;
   /** Prefixes that indicate dynamically-generated classes (e.g., 'lucide', 'fa-', 'heroicon') */
   dynamicPrefixes: string[];
+  /** Skip entire patterns if they contain any excluded classes (default: true)
+   * When true, patterns like "hidden md:flex" won't be consolidated at all if md:flex is excluded
+   * When false, excluded classes are preserved separately: "hidden md:flex" -> "_cp-xxx md:flex" */
+  skipPatternsWithExcludedClasses: boolean;
 }
 
 // File location tracking

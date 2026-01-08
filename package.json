@@ -1,36 +1,36 @@
 {
   "name": "classpresso",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "CSS class consolidation tool - compress multiple utility classes into single optimized classes",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./cli": {
       "types": "./dist/cli.d.ts",
-      "import": "./dist/cli.mjs",
-      "require": "./dist/cli.js"
+      "import": "./dist/cli.js",
+      "require": "./dist/cli.cjs"
     },
     "./scanner": {
       "types": "./dist/scanner.d.ts",
-      "import": "./dist/scanner.mjs",
-      "require": "./dist/scanner.js"
+      "import": "./dist/scanner.js",
+      "require": "./dist/scanner.cjs"
     },
     "./consolidator": {
       "types": "./dist/consolidator.d.ts",
-      "import": "./dist/consolidator.mjs",
-      "require": "./dist/consolidator.js"
+      "import": "./dist/consolidator.js",
+      "require": "./dist/consolidator.cjs"
     },
     "./transformer": {
       "types": "./dist/transformer.d.ts",
-      "import": "./dist/transformer.mjs",
-      "require": "./dist/transformer.js"
+      "import": "./dist/transformer.js",
+      "require": "./dist/transformer.cjs"
     }
   },
   "bin": {

@@ -458,19 +458,30 @@ export async function injectConsolidatedCSS(
   buildDir: string,
   consolidatedCSS: string
 ): Promise<string> {
-  // Find CSS files in build
-  const cssFiles = await findFiles(buildDir, ['static/**/*.css', 'static/css/**/*.css']);
+  // Find CSS files in build (including standalone)
+  const cssPatterns = [
+    'static/**/*.css',
+    'static/css/**/*.css',
+    'standalone/.next/static/**/*.css',
+    'standalone/.next/static/css/**/*.css',
+  ];
+  const cssFiles = await findFiles(buildDir, cssPatterns);
 
   if (cssFiles.length === 0) {
     throw new Error('No CSS files found in build output');
   }
 
-  // Append to the first CSS file (usually the main one)
-  const mainCSS = cssFiles[0];
-  const existingContent = await readFileContent(mainCSS);
-  const newContent = `${existingContent}\n\n${consolidatedCSS}`;
+  // Inject into all CSS files to ensure both main build and standalone have the CSS
+  const injectedFiles: string[] = [];
+  for (const cssFile of cssFiles) {
+    const existingContent = await readFileContent(cssFile);
+    // Don't inject twice if already present
+    if (!existingContent.includes('Classpresso Consolidated')) {
+      const newContent = `${existingContent}\n\n${consolidatedCSS}`;
+      await writeFileContent(cssFile, newContent);
+      injectedFiles.push(cssFile);
+    }
+  }
 
-  await writeFileContent(mainCSS, newContent);
-
-  return mainCSS;
+  return injectedFiles.length > 0 ? injectedFiles.join(', ') : 'none (already injected)';
 }

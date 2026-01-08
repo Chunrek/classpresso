@@ -11,10 +11,19 @@ import type { FileStats } from '../types/index.js';
  * Default file patterns to scan in build output
  */
 export const DEFAULT_PATTERNS = [
+  // Client-side chunks
   'static/chunks/**/*.js',
   'static/css/**/*.css',
+  // Server components (Next.js App Router)
+  'server/app/**/*.js',
   'server/app/**/*.html',
   'server/app/**/*.rsc',
+  // Standalone build (Next.js output: 'standalone')
+  'standalone/.next/static/chunks/**/*.js',
+  'standalone/.next/static/css/**/*.css',
+  'standalone/.next/server/app/**/*.js',
+  'standalone/.next/server/app/**/*.html',
+  'standalone/.next/server/app/**/*.rsc',
 ];
 
 /**

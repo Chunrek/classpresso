@@ -368,8 +368,23 @@ export async function extractUtilityCSS(
 ): Promise<Map<string, string[]>> {
   const utilityMap = new Map<string, string[]>();
 
-  // Find CSS files in build
-  const cssFiles = await findFiles(buildDir, ['static/**/*.css', 'static/css/**/*.css']);
+  // Find CSS files in build (supports all frameworks)
+  const cssPatterns = [
+    // Next.js
+    'static/**/*.css',
+    'static/css/**/*.css',
+    // Angular
+    'browser/**/*.css',
+    // Astro
+    '_astro/**/*.css',
+    // Nuxt
+    'public/_nuxt/**/*.css',
+    // Vite/Vue/React/Qwik generic
+    'assets/**/*.css',
+    // Gatsby/Hugo/Eleventy/Docusaurus/Parcel
+    '**/*.css',
+  ];
+  const cssFiles = await findFiles(buildDir, cssPatterns);
 
   for (const cssFile of cssFiles) {
     if (!isCSSFile(cssFile)) continue;
@@ -458,12 +473,27 @@ export async function injectConsolidatedCSS(
   buildDir: string,
   consolidatedCSS: string
 ): Promise<string> {
-  // Find CSS files in build (including standalone)
+  // Find CSS files in build (supports all frameworks)
   const cssPatterns = [
+    // Next.js
     'static/**/*.css',
     'static/css/**/*.css',
     'standalone/.next/static/**/*.css',
     'standalone/.next/static/css/**/*.css',
+    // Angular
+    'browser/**/*.css',
+    // Astro
+    '_astro/**/*.css',
+    'client/_astro/**/*.css',
+    // Nuxt
+    'public/_nuxt/**/*.css',
+    // SvelteKit
+    '_app/**/*.css',
+    'client/**/*.css',
+    // Vite/Vue/React/Qwik generic
+    'assets/**/*.css',
+    // Gatsby/Hugo/Eleventy/Docusaurus/Parcel
+    '**/*.css',
   ];
   const cssFiles = await findFiles(buildDir, cssPatterns);
 

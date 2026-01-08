@@ -3,9 +3,73 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { generateHashName, resolveCollisions } from '../src/utils/hash.js';
+import {
+  generateHashName,
+  resolveCollisions,
+  generateSequentialName,
+  generateSequentialNames,
+  calculateMinHashLength,
+} from '../src/utils/hash.js';
 
-describe('generateHashName', () => {
+describe('generateSequentialName', () => {
+  it('generates single character names for first 36 indices', () => {
+    expect(generateSequentialName(0, 'cp-')).toBe('cp-a');
+    expect(generateSequentialName(1, 'cp-')).toBe('cp-b');
+    expect(generateSequentialName(25, 'cp-')).toBe('cp-z');
+    expect(generateSequentialName(26, 'cp-')).toBe('cp-0');
+    expect(generateSequentialName(35, 'cp-')).toBe('cp-9');
+  });
+
+  it('generates two character names after first 36', () => {
+    expect(generateSequentialName(36, 'cp-')).toBe('cp-aa');
+    expect(generateSequentialName(37, 'cp-')).toBe('cp-ab');
+    expect(generateSequentialName(71, 'cp-')).toBe('cp-a9');
+    expect(generateSequentialName(72, 'cp-')).toBe('cp-ba');
+  });
+
+  it('uses custom prefix', () => {
+    expect(generateSequentialName(0, 'x-')).toBe('x-a');
+    expect(generateSequentialName(0, '')).toBe('a');
+  });
+});
+
+describe('generateSequentialNames', () => {
+  it('generates correct number of names', () => {
+    const names = generateSequentialNames(5, 'cp-');
+    expect(names).toHaveLength(5);
+    expect(names).toEqual(['cp-a', 'cp-b', 'cp-c', 'cp-d', 'cp-e']);
+  });
+
+  it('handles zero count', () => {
+    const names = generateSequentialNames(0, 'cp-');
+    expect(names).toHaveLength(0);
+  });
+});
+
+describe('calculateMinHashLength', () => {
+  it('returns 1 for small counts', () => {
+    expect(calculateMinHashLength(1)).toBe(1);
+    expect(calculateMinHashLength(10)).toBe(1);
+    expect(calculateMinHashLength(36)).toBe(2); // 36 needs 2 chars
+  });
+
+  it('returns 2 for medium counts', () => {
+    expect(calculateMinHashLength(100)).toBe(2);
+    expect(calculateMinHashLength(1000)).toBe(2);
+  });
+
+  it('returns 3 for large counts', () => {
+    expect(calculateMinHashLength(2000)).toBe(3);
+    expect(calculateMinHashLength(10000)).toBe(3);
+  });
+
+  it('handles edge cases', () => {
+    expect(calculateMinHashLength(0)).toBe(1);
+    expect(calculateMinHashLength(-1)).toBe(1);
+  });
+});
+
+describe('generateHashName (legacy)', () => {
   it('generates consistent hash for same input', () => {
     const hash1 = generateHashName('flex items-center gap-2');
     const hash2 = generateHashName('flex items-center gap-2');

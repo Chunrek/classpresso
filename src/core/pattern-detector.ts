@@ -7,7 +7,7 @@ import type {
   ClassOccurrence,
   ConsolidationCandidate,
 } from '../types/index.js';
-import { generateHashName, resolveCollisions } from '../utils/hash.js';
+import { generateSequentialName } from '../utils/hash.js';
 import { calculatePatternCSSOverhead } from './metrics.js';
 import { isHydrationSafe } from './scanner.js';
 
@@ -40,6 +40,7 @@ export function calculateBytesSaved(
 
 /**
  * Detect patterns that are worth consolidating
+ * Uses sequential naming (cp-a, cp-b, etc.) for shortest possible class names
  * @param occurrences - Map of pattern occurrences from scanner
  * @param config - Classpresso configuration
  * @param mergeablePatterns - Patterns that would be skipped in JS but not HTML (for SSR mode)
@@ -49,7 +50,11 @@ export function detectConsolidatablePatterns(
   config: ClasspressoConfig,
   mergeablePatterns?: Set<string>
 ): ConsolidationCandidate[] {
-  const candidates: ConsolidationCandidate[] = [];
+  // First pass: collect all valid candidates (without names yet)
+  const preliminaryCandidates: Array<{
+    occurrence: ClassOccurrence;
+    cssOverhead: number;
+  }> = [];
 
   for (const [, occurrence] of occurrences) {
     // Filter by minimum occurrences
@@ -79,30 +84,61 @@ export function detectConsolidatablePatterns(
       continue;
     }
 
-    // Generate hash name
-    const hashName = generateHashName(
-      occurrence.normalizedKey,
-      config.hashPrefix,
-      config.hashLength
+    const cssOverhead = calculatePatternCSSOverhead(occurrence.classes);
+    preliminaryCandidates.push({ occurrence, cssOverhead });
+  }
+
+  // Sort by frequency (highest first) for best sequential name assignment
+  // Most frequent patterns get shortest names (cp-a, cp-b, etc.)
+  preliminaryCandidates.sort((a, b) => b.occurrence.count - a.occurrence.count);
+
+  // Second pass: filter candidates that will have positive savings
+  // Use a placeholder name length estimate for initial filtering
+  const filteredCandidates: Array<{
+    occurrence: ClassOccurrence;
+    cssOverhead: number;
+  }> = [];
+
+  for (const { occurrence, cssOverhead } of preliminaryCandidates) {
+    // Estimate name length: cp-a (4 bytes) for first 36, cp-aa (5 bytes) for next, etc.
+    const estimatedNameLength = config.hashPrefix.length + 1; // Conservative estimate
+
+    // Calculate estimated bytes saved
+    const estimatedBytesSaved = calculateBytesSaved(
+      occurrence.classString,
+      'x'.repeat(estimatedNameLength), // placeholder
+      occurrence.count,
+      occurrence.excludedClasses
     );
 
-    // Calculate bytes saved
+    // Filter by minimum bytes saved
+    if (estimatedBytesSaved < config.minBytesSaved) continue;
+
+    // Filter by net positive savings (bytes saved > CSS overhead)
+    // Skip this check if forceAll is enabled (for React hydration consistency)
+    if (!config.forceAll) {
+      if (estimatedBytesSaved <= cssOverhead) continue;
+    }
+
+    filteredCandidates.push({ occurrence, cssOverhead });
+  }
+
+  // Third pass: assign sequential names to only the filtered candidates
+  const candidates: ConsolidationCandidate[] = [];
+
+  for (let i = 0; i < filteredCandidates.length; i++) {
+    const { occurrence } = filteredCandidates[i];
+
+    // Generate sequential name (cp-a, cp-b, cp-c, ...)
+    const hashName = generateSequentialName(i, config.hashPrefix);
+
+    // Calculate actual bytes saved with real name
     const bytesSaved = calculateBytesSaved(
       occurrence.classString,
       hashName,
       occurrence.count,
       occurrence.excludedClasses
     );
-
-    // Filter by minimum bytes saved
-    if (bytesSaved < config.minBytesSaved) continue;
-
-    // Filter by net positive savings (bytes saved > CSS overhead)
-    // Skip this check if forceAll is enabled (for React hydration consistency)
-    if (!config.forceAll) {
-      const cssOverhead = calculatePatternCSSOverhead(occurrence.classes);
-      if (bytesSaved <= cssOverhead) continue;
-    }
 
     candidates.push({
       classString: occurrence.classString,
@@ -115,11 +151,8 @@ export function detectConsolidatablePatterns(
     });
   }
 
-  // Resolve any hash collisions
-  const resolved = resolveCollisions(candidates);
-
   // Sort by bytes saved (highest first)
-  return resolved.sort((a, b) => b.bytesSaved - a.bytesSaved);
+  return candidates.sort((a, b) => b.bytesSaved - a.bytesSaved);
 }
 
 /**

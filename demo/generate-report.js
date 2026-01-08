@@ -8,6 +8,7 @@
 import PDFDocument from 'pdfkit';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import fs from 'fs';
+import { log } from 'console';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3456';
 
@@ -379,11 +380,11 @@ async function main() {
   console.log('Creating PDF report...');
 
   const outputPath = await generatePDF(results, charts);
-
-  console.log('\n═══════════════════════════════════════════════════════════════════');
+  console.log('\n');
+  console.log('═══════════════════════════════════════════════════════════════════');
   console.log('                    BENCHMARK SUMMARY');
   console.log('═══════════════════════════════════════════════════════════════════');
-
+  
   const totalOriginal = results.reduce((sum, r) => sum + r.avgOriginalSize, 0);
   const totalConsolidated = results.reduce((sum, r) => sum + r.avgConsolidatedSize, 0);
   const avgSavings = results.reduce((sum, r) => sum + r.savingsPercent, 0) / results.length;
@@ -392,7 +393,8 @@ async function main() {
   console.log(`   Consolidated size:   ${formatBytes(totalConsolidated)}`);
   console.log(`   Average savings:     ${avgSavings.toFixed(1)}%`);
   console.log(`   Total saved:         ${formatBytes(totalOriginal - totalConsolidated)}`);
-  console.log('═══════════════════════════════════════════════════════════════════\n');
+  console.log('═══════════════════════════════════════════════════════════════════');
+  console.log('\n');
 
   console.log(`Report generated: ${outputPath}\n`);
 }

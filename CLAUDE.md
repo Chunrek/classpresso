@@ -130,7 +130,10 @@ The link is located in the `## Links` section at the bottom of README.md:
 
 The `test_libraries/` directory contains test projects for different frameworks:
 - `test_libraries/angular/` - Angular 21 + SSR + Tailwind v4
+- `test_libraries/astro/` - Astro 5 + Tailwind (static site)
 - `test_libraries/nextjs_ssr/` - Next.js 15 App Router + Tailwind
+- `test_libraries/remix/` - Remix 2 + SSR + Tailwind
+- `test_libraries/solidjs/` - Solid.js 1.9 + Vite + Tailwind
 - `test_libraries/sveltekit_ssr/` - SvelteKit 2 + SSR + Tailwind
 - `test_libraries/vite_react/` - Vite 6 + React 19 + Tailwind
 - `test_libraries/vuejs_ssr/` - Nuxt 3 + SSR + Tailwind

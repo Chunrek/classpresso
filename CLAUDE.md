@@ -97,6 +97,7 @@ The project builds to both ESM and CJS formats via tsup. Entry points are export
 6. Commit with descriptive message
 7. Push to git
 8. Run `npm publish`
+9. **Create GitHub Release** - Go to Releases → Draft new release → select tag → add release notes
 
 ### UTM Parameters for README.md
 

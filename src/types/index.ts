@@ -40,6 +40,12 @@ export interface ClasspressoConfig {
    * When true, only transforms patterns found in BOTH HTML/RSC AND JS contexts
    * to prevent React hydration mismatches */
   ssr: boolean;
+  /** Enable debug mode - generates detailed log file at {buildDir}/classpresso-debug.log */
+  debug: boolean;
+  /** Enable automatic error reporting to configured webhook (default: false) */
+  sendErrorReports: boolean;
+  /** URL to send error reports to (required if sendErrorReports is true) */
+  errorReportUrl?: string;
 }
 
 // File location tracking

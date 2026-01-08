@@ -54,6 +54,9 @@ export const DEFAULT_CONFIG: ClasspressoConfig = {
   dynamicPrefixes: DEFAULT_DYNAMIC_PREFIXES,
   skipPatternsWithExcludedClasses: true,
   ssr: false,
+  debug: false,
+  sendErrorReports: false,
+  errorReportUrl: undefined,
 };
 
 /**
@@ -163,5 +166,26 @@ export function validateConfig(config: ClasspressoConfig): string[] {
     errors.push('hashPrefix must not be empty');
   }
 
+  // Validate error reporting configuration
+  if (config.sendErrorReports && !config.errorReportUrl) {
+    errors.push('errorReportUrl is required when sendErrorReports is true');
+  }
+
+  if (config.errorReportUrl && !isValidHttpsUrl(config.errorReportUrl)) {
+    errors.push('errorReportUrl must be a valid HTTPS URL');
+  }
+
   return errors;
+}
+
+/**
+ * Check if a URL is a valid HTTPS URL
+ */
+function isValidHttpsUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }

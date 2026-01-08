@@ -137,6 +137,9 @@ classpresso analyze --json
 - `--ssr` - Enable SSR-safe mode for hydration compatibility
 - `--json` - Output as JSON
 - `-v, --verbose` - Verbose output
+- `--debug` - Generate detailed debug log file for troubleshooting
+- `--send-error-reports` - Send error reports to configured webhook
+- `--error-report-url <url>` - Webhook URL for error reports
 
 ### `classpresso optimize`
 
@@ -157,6 +160,9 @@ classpresso optimize --backup
 - `--backup` - Create backup files before modifying
 - `--no-manifest` - Don't generate manifest file
 - `-v, --verbose` - Verbose output
+- `--debug` - Generate detailed debug log file for troubleshooting
+- `--send-error-reports` - Send error reports to configured webhook
+- `--error-report-url <url>` - Webhook URL for error reports
 
 ### `classpresso report`
 
@@ -247,6 +253,46 @@ module.exports = {
 };
 ```
 
+## Debug Mode
+
+When troubleshooting issues, enable debug mode to generate a detailed log file:
+
+```bash
+classpresso optimize --debug
+```
+
+This creates `classpresso-debug.log` in your build directory containing:
+- **System info**: Node version, OS, platform
+- **Config resolution**: Final merged config values
+- **Operation trace**: Every step with timestamps and timing
+- **Error details**: Full stack traces if errors occur
+
+The log file location is displayed when the command completes. Share this file when reporting issues.
+
+## Error Reporting
+
+Opt-in to automatically send error reports to help improve classpresso:
+
+```bash
+classpresso optimize --send-error-reports --error-report-url https://your-webhook.com/errors
+```
+
+Or configure in `classpresso.config.js`:
+
+```javascript
+module.exports = {
+  sendErrorReports: true,
+  errorReportUrl: 'https://your-webhook.com/errors',
+};
+```
+
+**Privacy**: Error reports only include:
+- Classpresso version, Node version, OS
+- Error message and stack trace
+- Non-sensitive config values (thresholds, flags)
+
+**Excluded**: Full file paths, project structure, class names
+
 ## Configuration
 
 Create a `classpresso.config.js` file in your project root:
@@ -281,6 +327,11 @@ module.exports = {
 
   // Debug options
   dataAttributes: false, // Add data-cp-original attribute with original classes
+  debug: false,          // Generate detailed debug log file
+
+  // Error reporting (opt-in)
+  sendErrorReports: false,           // Send error reports to webhook
+  errorReportUrl: undefined,         // Webhook URL (HTTPS required)
 
   // Output options
   manifest: true,       // Generate manifest.json

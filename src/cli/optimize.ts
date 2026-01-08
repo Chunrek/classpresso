@@ -11,6 +11,8 @@ import { generateConsolidatedCSS, injectConsolidatedCSS } from '../core/css-gene
 import { transformBuildOutput } from '../core/transformer.js';
 import { calculateMetrics, estimateCSSOverhead, formatBytes, formatPercentage, formatTime } from '../core/metrics.js';
 import { loadConfig } from '../config.js';
+import { createLogger } from '../utils/logger.js';
+import { sendErrorReport } from '../utils/error-reporter.js';
 
 interface OptimizeOptions {
   dir: string;
@@ -21,6 +23,9 @@ interface OptimizeOptions {
   backup?: boolean;
   manifest?: boolean;
   verbose?: boolean;
+  debug?: boolean;
+  sendErrorReports?: boolean;
+  errorReportUrl?: string;
 }
 
 export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
@@ -33,8 +38,18 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
   config.backup = options.backup || false;
   config.manifest = options.manifest !== false;
   config.verbose = options.verbose || false;
+  config.debug = options.debug || config.debug || false;
+  config.sendErrorReports = options.sendErrorReports || config.sendErrorReports || false;
+  config.errorReportUrl = options.errorReportUrl || config.errorReportUrl;
 
   const dryRun = options.dryRun || false;
+
+  // Initialize logger
+  const logger = createLogger({
+    debug: config.debug,
+    verbose: config.verbose,
+    buildDir: config.buildDir,
+  });
 
   console.log(chalk.cyan('\n☕ Classpresso - Optimizing build output...\n'));
 
@@ -47,35 +62,63 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
   }
 
   try {
+    // Log system info and config
+    await logger.logSystemInfo();
+    await logger.logConfig(config, 'optimize command');
+
     // Step 1: Scan
     console.log(chalk.gray('Scanning build output...'));
+    const scanStartTime = Date.now();
+    await logger.logStep('Starting scan', { buildDir: config.buildDir, dryRun });
     const scanResult = await scanBuildOutput(config);
+    await logger.logTiming('Scan', Date.now() - scanStartTime);
+    await logger.logStep('Scan complete', {
+      filesScanned: scanResult.files.length,
+      uniquePatterns: scanResult.occurrences.size,
+      errors: scanResult.errors.length,
+    });
     console.log(chalk.green(`  ✓ Scanned ${scanResult.files.length} files\n`));
 
     // Step 2: Detect patterns
     console.log(chalk.gray('Detecting patterns...'));
+    const detectStartTime = Date.now();
+    await logger.logStep('Detecting patterns');
     const candidates = detectConsolidatablePatterns(scanResult.occurrences, config);
+    await logger.logTiming('Pattern detection', Date.now() - detectStartTime);
+    await logger.logStep('Pattern detection complete', { candidatesFound: candidates.length });
     console.log(chalk.green(`  ✓ Found ${candidates.length} patterns to consolidate\n`));
 
     if (candidates.length === 0) {
       console.log(chalk.yellow('No patterns found that meet the consolidation criteria.'));
       console.log(chalk.gray('Try lowering --min-occurrences or --min-classes\n'));
+      await logger.logStep('No patterns to consolidate - exiting');
+      await logger.close();
       return;
     }
 
     // Step 3: Create mappings
     console.log(chalk.gray('Creating class mappings...'));
+    const mappingStartTime = Date.now();
+    await logger.logStep('Creating class mappings');
     const mappings = createClassMappings(candidates);
+    await logger.logTiming('Mapping creation', Date.now() - mappingStartTime);
+    await logger.logStep('Mappings created', { mappingCount: mappings.length });
     console.log(chalk.green(`  ✓ Created ${mappings.length} mappings\n`));
 
     // Step 4: Generate CSS
     console.log(chalk.gray('Generating consolidated CSS...'));
+    const cssStartTime = Date.now();
+    await logger.logStep('Generating consolidated CSS');
     const consolidatedCSS = await generateConsolidatedCSS(mappings, config.buildDir, config.cssLayer);
     const cssBytes = Buffer.byteLength(consolidatedCSS, 'utf-8');
+    await logger.logTiming('CSS generation', Date.now() - cssStartTime);
+    await logger.logStep('CSS generated', { cssBytes });
     console.log(chalk.green(`  ✓ Generated ${formatBytes(cssBytes)} of CSS\n`));
 
     // Step 5: Transform build output
     console.log(chalk.gray('Transforming build output...'));
+    const transformStartTime = Date.now();
+    await logger.logStep('Transforming build output', { dryRun });
     const transformResult = await transformBuildOutput(
       mappings,
       config,
@@ -83,6 +126,12 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
       scanResult.dynamicBasePatterns,
       scanResult.mergeablePatterns
     );
+    await logger.logTiming('Transformation', Date.now() - transformStartTime);
+    await logger.logStep('Transformation complete', {
+      filesModified: transformResult.filesModified,
+      bytesChanged: transformResult.bytesChanged,
+      errors: transformResult.errors.length,
+    });
     console.log(chalk.green(`  ✓ Modified ${transformResult.filesModified} files\n`));
 
     if (config.verbose) {
@@ -97,18 +146,29 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
     // Step 6: Inject CSS (if not dry run)
     if (!dryRun) {
       console.log(chalk.gray('Injecting consolidated CSS...'));
+      const injectStartTime = Date.now();
+      await logger.logStep('Injecting consolidated CSS');
       const cssFile = await injectConsolidatedCSS(config.buildDir, consolidatedCSS);
+      await logger.logTiming('CSS injection', Date.now() - injectStartTime);
+      await logger.logStep('CSS injected', { cssFile });
       console.log(chalk.green(`  ✓ Injected into ${cssFile}\n`));
     }
 
     // Step 7: Calculate metrics
+    await logger.logStep('Calculating metrics');
     const cssOverhead = estimateCSSOverhead(candidates);
     const metrics = calculateMetrics(candidates, scanResult.files, transformResult, cssOverhead);
+    await logger.logStep('Metrics calculated', {
+      bytesSaved: metrics.bytesSaved,
+      percentageReduction: metrics.percentageReduction,
+    });
 
     // Step 8: Save manifest (if not dry run and manifest enabled)
     if (!dryRun && config.manifest) {
       console.log(chalk.gray('Saving manifest...'));
+      await logger.logStep('Saving manifest');
       const manifestPath = await saveMappingManifest(mappings, metrics, config);
+      await logger.logStep('Manifest saved', { manifestPath });
       console.log(chalk.green(`  ✓ Saved to ${manifestPath}\n`));
     }
 
@@ -122,8 +182,27 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
       }
     }
 
+    // Show debug log location if debug mode is enabled
+    if (config.debug && logger.getLogPath()) {
+      console.log(chalk.gray(`Debug log: ${logger.getLogPath()}`));
+    }
+
+    await logger.close();
+
   } catch (err) {
-    console.error(chalk.red(`\nError: ${err}`));
+    const error = err instanceof Error ? err : new Error(String(err));
+    await logger.logError(error, 'optimize command');
+    await logger.close();
+
+    // Send error report if enabled
+    if (config.sendErrorReports) {
+      await sendErrorReport(error, {
+        enabled: true,
+        url: config.errorReportUrl,
+      }, config, 'optimize');
+    }
+
+    console.error(chalk.red(`\nError: ${error.message}`));
     process.exit(1);
   }
 }

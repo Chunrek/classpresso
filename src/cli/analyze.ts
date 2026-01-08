@@ -8,6 +8,8 @@ import { scanBuildOutput } from '../core/scanner.js';
 import { detectConsolidatablePatterns, getPatternSummary } from '../core/pattern-detector.js';
 import { formatBytes } from '../core/metrics.js';
 import { loadConfig } from '../config.js';
+import { createLogger } from '../utils/logger.js';
+import { sendErrorReport } from '../utils/error-reporter.js';
 
 interface AnalyzeOptions {
   dir: string;
@@ -16,6 +18,9 @@ interface AnalyzeOptions {
   ssr?: boolean;
   json?: boolean;
   verbose?: boolean;
+  debug?: boolean;
+  sendErrorReports?: boolean;
+  errorReportUrl?: string;
 }
 
 export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
@@ -26,14 +31,36 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
   config.minClasses = parseInt(options.minClasses, 10);
   config.verbose = options.verbose || false;
   config.ssr = options.ssr || false;
+  config.debug = options.debug || config.debug || false;
+  config.sendErrorReports = options.sendErrorReports || config.sendErrorReports || false;
+  config.errorReportUrl = options.errorReportUrl || config.errorReportUrl;
+
+  // Initialize logger
+  const logger = createLogger({
+    debug: config.debug,
+    verbose: config.verbose,
+    buildDir: config.buildDir,
+  });
 
   if (!options.json) {
     console.log(chalk.cyan('\n☕ Classpresso - Analyzing build output...\n'));
   }
 
   try {
+    // Log system info and config
+    await logger.logSystemInfo();
+    await logger.logConfig(config, 'analyze command');
+
     // Scan build output
+    const scanStartTime = Date.now();
+    await logger.logStep('Starting scan', { buildDir: config.buildDir });
     const scanResult = await scanBuildOutput(config);
+    await logger.logTiming('Scan', Date.now() - scanStartTime);
+    await logger.logStep('Scan complete', {
+      filesScanned: scanResult.files.length,
+      uniquePatterns: scanResult.occurrences.size,
+      errors: scanResult.errors.length,
+    });
 
     if (scanResult.errors.length > 0 && config.verbose) {
       console.log(chalk.yellow('Warnings:'));
@@ -44,8 +71,15 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
     }
 
     // Detect patterns
+    const detectStartTime = Date.now();
+    await logger.logStep('Detecting consolidatable patterns');
     const candidates = detectConsolidatablePatterns(scanResult.occurrences, config);
     const summary = getPatternSummary(candidates);
+    await logger.logTiming('Pattern detection', Date.now() - detectStartTime);
+    await logger.logStep('Pattern detection complete', {
+      candidatesFound: candidates.length,
+      totalBytesSaved: summary.totalBytesSaved,
+    });
 
     if (options.json) {
       console.log(JSON.stringify({
@@ -61,6 +95,7 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
         files: scanResult.files.length,
         errors: scanResult.errors,
       }, null, 2));
+      await logger.close();
       return;
     }
 
@@ -104,9 +139,27 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
       console.log(chalk.gray(`Run ${chalk.cyan('classpresso optimize')} to apply these optimizations.`));
     }
 
+    // Show debug log location if debug mode is enabled
+    if (config.debug && logger.getLogPath()) {
+      console.log(chalk.gray(`Debug log: ${logger.getLogPath()}`));
+    }
+
     console.log();
+    await logger.close();
   } catch (err) {
-    console.error(chalk.red(`Error: ${err}`));
+    const error = err instanceof Error ? err : new Error(String(err));
+    await logger.logError(error, 'analyze command');
+    await logger.close();
+
+    // Send error report if enabled
+    if (config.sendErrorReports) {
+      await sendErrorReport(error, {
+        enabled: true,
+        url: config.errorReportUrl,
+      }, config, 'analyze');
+    }
+
+    console.error(chalk.red(`Error: ${error.message}`));
     process.exit(1);
   }
 }

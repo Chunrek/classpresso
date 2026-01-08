@@ -50,6 +50,18 @@ describe('DEFAULT_CONFIG', () => {
   it('has backup disabled by default', () => {
     expect(DEFAULT_CONFIG.backup).toBe(false);
   });
+
+  it('has debug disabled by default', () => {
+    expect(DEFAULT_CONFIG.debug).toBe(false);
+  });
+
+  it('has sendErrorReports disabled by default', () => {
+    expect(DEFAULT_CONFIG.sendErrorReports).toBe(false);
+  });
+
+  it('has errorReportUrl undefined by default', () => {
+    expect(DEFAULT_CONFIG.errorReportUrl).toBeUndefined();
+  });
 });
 
 describe('validateConfig', () => {
@@ -140,6 +152,56 @@ describe('validateConfig', () => {
     const config: ClasspressoConfig = {
       ...DEFAULT_CONFIG,
       hashLength: 32,
+    };
+    const errors = validateConfig(config);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('returns error when sendErrorReports is true but no URL provided', () => {
+    const config: ClasspressoConfig = {
+      ...DEFAULT_CONFIG,
+      sendErrorReports: true,
+      errorReportUrl: undefined,
+    };
+    const errors = validateConfig(config);
+    expect(errors).toContain('errorReportUrl is required when sendErrorReports is true');
+  });
+
+  it('returns error for invalid errorReportUrl', () => {
+    const config: ClasspressoConfig = {
+      ...DEFAULT_CONFIG,
+      sendErrorReports: true,
+      errorReportUrl: 'not-a-url',
+    };
+    const errors = validateConfig(config);
+    expect(errors).toContain('errorReportUrl must be a valid HTTPS URL');
+  });
+
+  it('returns error for HTTP (non-HTTPS) URL', () => {
+    const config: ClasspressoConfig = {
+      ...DEFAULT_CONFIG,
+      sendErrorReports: true,
+      errorReportUrl: 'http://example.com/webhook',
+    };
+    const errors = validateConfig(config);
+    expect(errors).toContain('errorReportUrl must be a valid HTTPS URL');
+  });
+
+  it('accepts valid HTTPS errorReportUrl', () => {
+    const config: ClasspressoConfig = {
+      ...DEFAULT_CONFIG,
+      sendErrorReports: true,
+      errorReportUrl: 'https://example.com/webhook',
+    };
+    const errors = validateConfig(config);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts errorReportUrl when sendErrorReports is false', () => {
+    const config: ClasspressoConfig = {
+      ...DEFAULT_CONFIG,
+      sendErrorReports: false,
+      errorReportUrl: 'https://example.com/webhook',
     };
     const errors = validateConfig(config);
     expect(errors).toHaveLength(0);

@@ -23,6 +23,9 @@ program
   .option('--ssr', 'Enable SSR-safe mode (only transforms patterns in both HTML and JS)')
   .option('--json', 'Output as JSON')
   .option('-v, --verbose', 'Verbose output')
+  .option('--debug', 'Enable debug mode (generates detailed log file)')
+  .option('--send-error-reports', 'Send error reports to configured webhook')
+  .option('--error-report-url <url>', 'Webhook URL for error reports')
   .action(analyzeCommand);
 
 program
@@ -36,6 +39,9 @@ program
   .option('--backup', 'Create backup before modifying')
   .option('--no-manifest', 'Do not generate manifest file')
   .option('-v, --verbose', 'Verbose output')
+  .option('--debug', 'Enable debug mode (generates detailed log file)')
+  .option('--send-error-reports', 'Send error reports to configured webhook')
+  .option('--error-report-url <url>', 'Webhook URL for error reports')
   .action(optimizeCommand);
 
 program

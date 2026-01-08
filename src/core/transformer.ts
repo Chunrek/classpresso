@@ -95,6 +95,10 @@ function buildMatchPatterns(classString: string): MatchPattern[] {
     // HTML entity encoded: class=&quot;...&quot; - supports data attributes
     { regex: new RegExp(`(class=&quot;)${escaped}(&quot;)`,'g'), supportsDataAttr: true },
     { regex: new RegExp(`(class=&#34;)${escaped}(&#34;)`,'g'), supportsDataAttr: true },
+
+    // RSC payload (escaped JSON in HTML): \"className\":\"...\"
+    // This is used in Next.js self.__next_f.push() payloads
+    { regex: new RegExp(`(\\\\"className\\\\"\\s*:\\s*\\\\")${escaped}(\\\\")`, 'g'), supportsDataAttr: false },
   ];
 }
 
@@ -161,6 +165,9 @@ function findClassVariations(
     // Template literals with dynamic suffix: className:`... ${...}`
     // Captures the static part before the ${
     /(?:className|class)\s*:\s*`([^`$]+) \$\{/g,
+    // RSC payload (escaped JSON in HTML): \"className\":\"...\"
+    // Used in Next.js self.__next_f.push() payloads
+    /\\"className\\"\s*:\s*\\"([^"\\]+)\\"/g,
   ];
 
   for (const classAttrRegex of classAttrPatterns) {

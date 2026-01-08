@@ -73,7 +73,12 @@ export async function analyzeCommand(options: AnalyzeOptions): Promise<void> {
     // Detect patterns
     const detectStartTime = Date.now();
     await logger.logStep('Detecting consolidatable patterns');
-    const candidates = detectConsolidatablePatterns(scanResult.occurrences, config);
+    // Pass mergeablePatterns to pattern detector in SSR mode to prevent hydration mismatches
+    const candidates = detectConsolidatablePatterns(
+      scanResult.occurrences,
+      config,
+      config.ssr ? scanResult.mergeablePatterns : undefined
+    );
     const summary = getPatternSummary(candidates);
     await logger.logTiming('Pattern detection', Date.now() - detectStartTime);
     await logger.logStep('Pattern detection complete', {

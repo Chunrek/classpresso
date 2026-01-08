@@ -209,3 +209,62 @@ describe('hydration mismatch scenario', () => {
     expect(htmlClasses.length).toBeGreaterThan(baseClasses.length);
   });
 });
+
+describe('SSR mode mergeable pattern filtering', () => {
+  // Test for the fix: mergeable patterns should be filtered at pattern detection time
+  // to prevent inconsistent transformation between HTML and JS files
+
+  it('should skip mergeable patterns in SSR mode to prevent hydration mismatches', async () => {
+    // Import the necessary modules
+    const { detectConsolidatablePatterns } = await import('../src/core/pattern-detector.js');
+    const { DEFAULT_CONFIG } = await import('../src/config.js');
+    const { ClassOccurrence } = await import('../src/types/index.js');
+
+    // Create a mock occurrence that appears in both HTML and JS
+    // This simulates a className prop pattern that appears as a subset in JS
+    // but gets merged with other classes in HTML
+    const occurrences = new Map<string, ClassOccurrence>();
+
+    // Pattern that appears in both contexts (passes hydration safety check)
+    occurrences.set('flex gap-2', {
+      classString: 'flex gap-2',
+      normalizedKey: 'flex gap-2',
+      count: 5,
+      locations: [],
+      classes: ['flex', 'gap-2'],
+      excludedClasses: [],
+      sourceTypes: new Set(['html', 'js']), // Appears in both
+    });
+
+    // Mergeable patterns set - patterns that would be skipped in JS only
+    const mergeablePatterns = new Set(['flex gap-2']);
+
+    // SSR mode config
+    const ssrConfig = {
+      ...DEFAULT_CONFIG,
+      ssr: true,
+      minOccurrences: 1,
+      minClasses: 1,
+      minBytesSaved: 0,
+      forceAll: true,
+    };
+
+    // Non-SSR mode config
+    const nonSsrConfig = {
+      ...ssrConfig,
+      ssr: false,
+    };
+
+    // In SSR mode with mergeablePatterns, the pattern should NOT be a candidate
+    const ssrCandidates = detectConsolidatablePatterns(occurrences, ssrConfig, mergeablePatterns);
+    expect(ssrCandidates.length).toBe(0);
+
+    // In SSR mode without passing mergeablePatterns, pattern IS a candidate
+    const ssrCandidatesNoMergeable = detectConsolidatablePatterns(occurrences, ssrConfig, undefined);
+    expect(ssrCandidatesNoMergeable.length).toBe(1);
+
+    // In non-SSR mode, pattern IS a candidate (even with mergeablePatterns)
+    const nonSsrCandidates = detectConsolidatablePatterns(occurrences, nonSsrConfig, mergeablePatterns);
+    expect(nonSsrCandidates.length).toBe(1);
+  });
+});

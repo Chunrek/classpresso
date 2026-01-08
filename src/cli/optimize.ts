@@ -83,7 +83,12 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
     console.log(chalk.gray('Detecting patterns...'));
     const detectStartTime = Date.now();
     await logger.logStep('Detecting patterns');
-    const candidates = detectConsolidatablePatterns(scanResult.occurrences, config);
+    // Pass mergeablePatterns to pattern detector in SSR mode to prevent hydration mismatches
+    const candidates = detectConsolidatablePatterns(
+      scanResult.occurrences,
+      config,
+      config.ssr ? scanResult.mergeablePatterns : undefined
+    );
     await logger.logTiming('Pattern detection', Date.now() - detectStartTime);
     await logger.logStep('Pattern detection complete', { candidatesFound: candidates.length });
     console.log(chalk.green(`  ✓ Found ${candidates.length} patterns to consolidate\n`));

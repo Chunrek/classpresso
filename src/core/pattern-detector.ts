@@ -40,10 +40,14 @@ export function calculateBytesSaved(
 
 /**
  * Detect patterns that are worth consolidating
+ * @param occurrences - Map of pattern occurrences from scanner
+ * @param config - Classpresso configuration
+ * @param mergeablePatterns - Patterns that would be skipped in JS but not HTML (for SSR mode)
  */
 export function detectConsolidatablePatterns(
   occurrences: Map<string, ClassOccurrence>,
-  config: ClasspressoConfig
+  config: ClasspressoConfig,
+  mergeablePatterns?: Set<string>
 ): ConsolidationCandidate[] {
   const candidates: ConsolidationCandidate[] = [];
 
@@ -57,6 +61,14 @@ export function detectConsolidatablePatterns(
     // SSR mode: only transform patterns found in BOTH server and client contexts
     // This prevents React hydration mismatches
     if (config.ssr && !isHydrationSafe(occurrence)) {
+      continue;
+    }
+
+    // SSR mode: skip mergeable patterns to prevent hydration mismatches
+    // These are patterns that appear as className props in JS but get merged
+    // with component classes in HTML. If we consolidate in HTML but skip in JS,
+    // we get a mismatch. So we skip the pattern entirely in SSR mode.
+    if (config.ssr && mergeablePatterns && mergeablePatterns.has(occurrence.normalizedKey)) {
       continue;
     }
 

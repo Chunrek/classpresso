@@ -237,9 +237,12 @@ async function transformFile(
         }
       }
 
-      // Skip mergeable patterns in JS files
+      // Skip mergeable patterns in JS files (non-SSR mode only)
       // These are patterns that appear in JS as className props but get merged
-      // with component-internal classes in the HTML output
+      // with component-internal classes in the HTML output.
+      // NOTE: In SSR mode, mergeable patterns are filtered at pattern detection time
+      // (pattern-detector.ts) to ensure consistent transformation across all files.
+      // This skip logic is primarily for non-SSR mode backward compatibility.
       if (isJS && mergeablePatterns.has(mapping.original)) {
         skippedForHydration++;
         continue;

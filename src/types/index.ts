@@ -19,6 +19,7 @@ export interface ClasspressoConfig {
   hashLength: number;
   exclude: ExcludeConfig;
   include: string[];
+  cssLayer?: string | false;
   manifest: boolean;
   backup: boolean;
   verbose: boolean;

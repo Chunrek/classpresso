@@ -407,7 +407,8 @@ export async function extractUtilityCSS(
  */
 export async function generateConsolidatedCSS(
   mappings: ClassMapping[],
-  buildDir: string
+  buildDir: string,
+  cssLayer?: string | false
 ): Promise<string> {
   // First, try to extract utilities from the build CSS
   const utilityMap = await extractUtilityCSS(buildDir);
@@ -441,7 +442,13 @@ export async function generateConsolidatedCSS(
     }
   }
 
-  return `/* Classpresso Consolidated Classes */\n${cssRules.join('\n\n')}`;
+  const cssContent = cssRules.join('\n\n');
+
+  if (cssLayer) {
+    return `/* Classpresso Consolidated Classes */\n@layer ${cssLayer} {\n${cssRules.map(rule => '  ' + rule.replace(/\n/g, '\n  ')).join('\n\n')}\n}`;
+  }
+
+  return `/* Classpresso Consolidated Classes */\n${cssContent}`;
 }
 
 /**

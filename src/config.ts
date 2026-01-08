@@ -23,6 +23,7 @@ export const DEFAULT_CONFIG: ClasspressoConfig = {
     patterns: [/^qa-/, /^test-/, /^e2e-/],
   },
   include: [],
+  cssLayer: false,
   manifest: true,
   backup: false,
   verbose: false,

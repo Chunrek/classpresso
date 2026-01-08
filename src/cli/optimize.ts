@@ -64,7 +64,7 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
 
     // Step 4: Generate CSS
     console.log(chalk.gray('Generating consolidated CSS...'));
-    const consolidatedCSS = await generateConsolidatedCSS(mappings, config.buildDir);
+    const consolidatedCSS = await generateConsolidatedCSS(mappings, config.buildDir, config.cssLayer);
     const cssBytes = Buffer.byteLength(consolidatedCSS, 'utf-8');
     console.log(chalk.green(`  ✓ Generated ${formatBytes(cssBytes)} of CSS\n`));
 

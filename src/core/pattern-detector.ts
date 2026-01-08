@@ -72,8 +72,11 @@ export function detectConsolidatablePatterns(
     if (bytesSaved < config.minBytesSaved) continue;
 
     // Filter by net positive savings (bytes saved > CSS overhead)
-    const cssOverhead = calculatePatternCSSOverhead(occurrence.classes);
-    if (bytesSaved <= cssOverhead) continue;
+    // Skip this check if forceAll is enabled (for React hydration consistency)
+    if (!config.forceAll) {
+      const cssOverhead = calculatePatternCSSOverhead(occurrence.classes);
+      if (bytesSaved <= cssOverhead) continue;
+    }
 
     candidates.push({
       classString: occurrence.classString,

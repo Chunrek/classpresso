@@ -24,6 +24,8 @@ export interface ClasspressoConfig {
   manifest: boolean;
   backup: boolean;
   verbose: boolean;
+  /** Force consolidation of all patterns regardless of byte savings (for React hydration consistency) */
+  forceAll: boolean;
 }
 
 // File location tracking

@@ -36,12 +36,23 @@ function buildMatchPatterns(classString: string): MatchPattern[] {
     { regex: new RegExp(`(className\\s*:\\s*")${escaped}(")`,'g'), supportsDataAttr: false },
     { regex: new RegExp(`(className\\s*:\\s*')${escaped}(')`,'g'), supportsDataAttr: false },
 
+    // Template literals: className:`...` (static content only)
+    { regex: new RegExp(`(className\\s*:\\s*\`)${escaped}(\`)`,'g'), supportsDataAttr: false },
+
+    // Template literals with dynamic suffix: className:`... ${...}`
+    // Matches static prefix before ${...} expression
+    { regex: new RegExp(`(className\\s*:\\s*\`)${escaped}( \\$\\{)`,'g'), supportsDataAttr: false },
+
     // "className","..." (minified) - no data attr support
     { regex: new RegExp(`("className"\\s*,\\s*")${escaped}(")`,'g'), supportsDataAttr: false },
 
     // class="..." (HTML) - supports data attributes
     { regex: new RegExp(`(\\bclass\\s*=\\s*")${escaped}(")`,'g'), supportsDataAttr: true },
     { regex: new RegExp(`(\\bclass\\s*=\\s*')${escaped}(')`,'g'), supportsDataAttr: true },
+
+    // HTML entity encoded: class=&quot;...&quot; - supports data attributes
+    { regex: new RegExp(`(class=&quot;)${escaped}(&quot;)`,'g'), supportsDataAttr: true },
+    { regex: new RegExp(`(class=&#34;)${escaped}(&#34;)`,'g'), supportsDataAttr: true },
   ];
 }
 
@@ -98,29 +109,41 @@ function findClassVariations(
   const variations: string[] = [];
   const targetClasses = new Set(mapping.classes);
 
-  // Create regex to find className attributes
-  const classAttrRegex = /(?:className|class)\s*[=:]\s*["']([^"']+)["']/g;
+  // Create regex patterns to find className attributes (including HTML entity encoded and template literals)
+  const classAttrPatterns = [
+    /(?:className|class)\s*[=:]\s*["']([^"']+)["']/g,
+    /class=&quot;([^&]+)&quot;/g,
+    /class=&#34;([^&]+)&#34;/g,
+    // Template literals - static only: className:`...`
+    /(?:className|class)\s*:\s*`([^`$]+)`/g,
+    // Template literals with dynamic suffix: className:`... ${...}`
+    // Captures the static part before the ${
+    /(?:className|class)\s*:\s*`([^`$]+) \$\{/g,
+  ];
 
-  let match;
-  while ((match = classAttrRegex.exec(content)) !== null) {
-    const classString = match[1];
-    const { classes } = normalizeClassString(classString, config.exclude);
+  for (const classAttrRegex of classAttrPatterns) {
+    classAttrRegex.lastIndex = 0;
+    let match;
+    while ((match = classAttrRegex.exec(content)) !== null) {
+      const classString = match[1];
+      const { classes } = normalizeClassString(classString, config.exclude);
 
-    // Check if this class string contains all the target classes
-    if (classes.length >= targetClasses.size) {
-      const classSet = new Set(classes);
-      let allPresent = true;
+      // Check if this class string contains all the target classes
+      if (classes.length >= targetClasses.size) {
+        const classSet = new Set(classes);
+        let allPresent = true;
 
-      for (const targetClass of targetClasses) {
-        if (!classSet.has(targetClass)) {
-          allPresent = false;
-          break;
+        for (const targetClass of targetClasses) {
+          if (!classSet.has(targetClass)) {
+            allPresent = false;
+            break;
+          }
         }
-      }
 
-      // If all target classes are present and it's an exact match
-      if (allPresent && classes.length === targetClasses.size) {
-        variations.push(classString);
+        // If all target classes are present and it's an exact match
+        if (allPresent && classes.length === targetClasses.size) {
+          variations.push(classString);
+        }
       }
     }
   }

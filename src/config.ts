@@ -28,6 +28,7 @@ export const DEFAULT_CONFIG: ClasspressoConfig = {
   manifest: true,
   backup: false,
   verbose: false,
+  forceAll: false,
 };
 
 /**

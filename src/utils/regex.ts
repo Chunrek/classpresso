@@ -33,6 +33,12 @@ export const CLASS_PATTERNS = {
 
   // HTML: class='...'
   htmlSingle: /\bclass\s*=\s*'([^']+)'/g,
+
+  // HTML entity encoded: class=&quot;...&quot;
+  htmlEntityDouble: /\bclass=&quot;([^&]+)&quot;/g,
+
+  // HTML entity encoded: class=&#34;...&#34; (numeric entity)
+  htmlNumericDouble: /\bclass=&#34;([^&]+)&#34;/g,
 };
 
 /**
@@ -46,6 +52,8 @@ export const ALL_CLASS_PATTERNS = [
   CLASS_PATTERNS.minifiedComma,
   CLASS_PATTERNS.htmlDouble,
   CLASS_PATTERNS.htmlSingle,
+  CLASS_PATTERNS.htmlEntityDouble,
+  CLASS_PATTERNS.htmlNumericDouble,
 ];
 
 /**
@@ -81,5 +89,8 @@ export function createReplacementPatterns(original: string): RegExp[] {
     new RegExp(`("className"\\s*,\\s*)"${escaped}"`, 'g'),
     new RegExp(`(class\\s*=\\s*)"${escaped}"`, 'g'),
     new RegExp(`(class\\s*=\\s*)'${escaped}'`, 'g'),
+    // HTML entity encoded quotes
+    new RegExp(`(class=&quot;)${escaped}(&quot;)`, 'g'),
+    new RegExp(`(class=&#34;)${escaped}(&#34;)`, 'g'),
   ];
 }

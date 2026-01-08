@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import { program } from '../dist/cli/index.js';
+import { program } from '../dist/cli.js';
 
 program.parse();

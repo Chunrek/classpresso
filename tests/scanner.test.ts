@@ -8,10 +8,12 @@ import {
   normalizeClassString,
   extractClassStrings,
   containsDynamicPrefix,
+  isProperSubset,
+  detectMergeablePatterns,
 } from '../src/core/scanner.js';
 import { extractDynamicBaseStrings } from '../src/utils/regex.js';
 import { DEFAULT_DYNAMIC_PREFIXES } from '../src/config.js';
-import type { ExcludeConfig } from '../src/types/index.js';
+import type { ExcludeConfig, ClassOccurrence } from '../src/types/index.js';
 
 describe('shouldExcludeClass', () => {
   const exclude: ExcludeConfig = {
@@ -210,5 +212,98 @@ describe('containsDynamicPrefix', () => {
   it('handles empty arrays', () => {
     expect(containsDynamicPrefix([], DEFAULT_DYNAMIC_PREFIXES)).toBe(false);
     expect(containsDynamicPrefix(['flex'], [])).toBe(false);
+  });
+});
+
+describe('isProperSubset', () => {
+  it('returns true when A is a proper subset of B', () => {
+    expect(isProperSubset(['h-4', 'w-4'], ['lucide', 'lucide-copy', 'h-4', 'w-4'])).toBe(true);
+    expect(isProperSubset(['flex'], ['flex', 'items-center', 'gap-2'])).toBe(true);
+  });
+
+  it('returns false when sets are equal', () => {
+    expect(isProperSubset(['h-4', 'w-4'], ['h-4', 'w-4'])).toBe(false);
+  });
+
+  it('returns false when A has more elements than B', () => {
+    expect(isProperSubset(['h-4', 'w-4', 'text-lg'], ['h-4', 'w-4'])).toBe(false);
+  });
+
+  it('returns false when A has elements not in B', () => {
+    expect(isProperSubset(['h-4', 'text-lg'], ['h-4', 'w-4', 'flex'])).toBe(false);
+  });
+
+  it('handles empty arrays', () => {
+    expect(isProperSubset([], ['h-4', 'w-4'])).toBe(true); // Empty is subset of any non-empty
+    expect(isProperSubset(['h-4'], [])).toBe(false);
+    expect(isProperSubset([], [])).toBe(false); // Empty is not proper subset of empty
+  });
+});
+
+describe('detectMergeablePatterns', () => {
+  function createOccurrence(
+    classes: string[],
+    sourceTypes: ('js' | 'html' | 'rsc')[]
+  ): ClassOccurrence {
+    return {
+      classString: classes.join(' '),
+      normalizedKey: classes.sort().join(' '),
+      count: 1,
+      locations: [{ filePath: 'test.js' }],
+      classes,
+      excludedClasses: [],
+      sourceTypes: new Set(sourceTypes),
+    };
+  }
+
+  it('detects JS patterns that are subsets of HTML patterns', () => {
+    const occurrences = new Map<string, ClassOccurrence>([
+      ['h-4 w-4', createOccurrence(['h-4', 'w-4'], ['js'])],
+      ['h-4 lucide lucide-copy w-4', createOccurrence(['lucide', 'lucide-copy', 'h-4', 'w-4'], ['html'])],
+    ]);
+
+    const mergeable = detectMergeablePatterns(occurrences);
+    expect(mergeable.has('h-4 w-4')).toBe(true);
+  });
+
+  it('does not flag patterns that appear in both JS and HTML equally', () => {
+    const occurrences = new Map<string, ClassOccurrence>([
+      ['flex gap-2 items-center', createOccurrence(['flex', 'gap-2', 'items-center'], ['js', 'html'])],
+    ]);
+
+    const mergeable = detectMergeablePatterns(occurrences);
+    expect(mergeable.size).toBe(0);
+  });
+
+  it('does not flag HTML-only patterns', () => {
+    const occurrences = new Map<string, ClassOccurrence>([
+      ['flex gap-2', createOccurrence(['flex', 'gap-2'], ['html'])],
+    ]);
+
+    const mergeable = detectMergeablePatterns(occurrences);
+    expect(mergeable.size).toBe(0);
+  });
+
+  it('does not flag JS patterns without HTML supersets', () => {
+    const occurrences = new Map<string, ClassOccurrence>([
+      ['flex gap-2', createOccurrence(['flex', 'gap-2'], ['js'])],
+      ['text-lg font-bold', createOccurrence(['text-lg', 'font-bold'], ['html'])],
+    ]);
+
+    const mergeable = detectMergeablePatterns(occurrences);
+    expect(mergeable.size).toBe(0);
+  });
+
+  it('handles the lucide-react icon scenario', () => {
+    // This is the exact scenario from the issue:
+    // JS has: className="h-3.5 w-3.5" (passed as prop)
+    // HTML has: class="lucide lucide-copy h-3.5 w-3.5" (merged by component)
+    const occurrences = new Map<string, ClassOccurrence>([
+      ['h-3.5 w-3.5', createOccurrence(['h-3.5', 'w-3.5'], ['js'])],
+      ['h-3.5 lucide lucide-copy w-3.5', createOccurrence(['lucide', 'lucide-copy', 'h-3.5', 'w-3.5'], ['html'])],
+    ]);
+
+    const mergeable = detectMergeablePatterns(occurrences);
+    expect(mergeable.has('h-3.5 w-3.5')).toBe(true);
   });
 });

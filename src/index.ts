@@ -18,10 +18,11 @@ export type {
   TransformResult,
   FileStats,
   DynamicBasePattern,
+  SourceFileType,
 } from './types/index.js';
 
 // Core functions
-export { scanBuildOutput, normalizeClassString, shouldExcludeClass, containsDynamicPrefix } from './core/scanner.js';
+export { scanBuildOutput, normalizeClassString, shouldExcludeClass, containsDynamicPrefix, isProperSubset, detectMergeablePatterns } from './core/scanner.js';
 export { detectConsolidatablePatterns, getPatternSummary } from './core/pattern-detector.js';
 export { createClassMappings, saveMappingManifest, loadMappingManifest, buildReplacementMap } from './core/consolidator.js';
 export { generateConsolidatedCSS, injectConsolidatedCSS, parseUtilityClass } from './core/css-generator.js';

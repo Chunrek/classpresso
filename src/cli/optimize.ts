@@ -70,11 +70,22 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
 
     // Step 5: Transform build output
     console.log(chalk.gray('Transforming build output...'));
-    const transformResult = await transformBuildOutput(mappings, config, dryRun, scanResult.dynamicBasePatterns);
+    const transformResult = await transformBuildOutput(
+      mappings,
+      config,
+      dryRun,
+      scanResult.dynamicBasePatterns,
+      scanResult.mergeablePatterns
+    );
     console.log(chalk.green(`  ✓ Modified ${transformResult.filesModified} files\n`));
 
-    if (config.verbose && scanResult.dynamicBasePatterns.size > 0) {
-      console.log(chalk.gray(`  ℹ Found ${scanResult.dynamicBasePatterns.size} dynamic class patterns (hydration-safe mode)\n`));
+    if (config.verbose) {
+      if (scanResult.dynamicBasePatterns.size > 0) {
+        console.log(chalk.gray(`  ℹ Found ${scanResult.dynamicBasePatterns.size} dynamic class patterns (template literals)\n`));
+      }
+      if (scanResult.mergeablePatterns.size > 0) {
+        console.log(chalk.gray(`  ℹ Found ${scanResult.mergeablePatterns.size} mergeable patterns (className props)\n`));
+      }
     }
 
     // Step 6: Inject CSS (if not dry run)

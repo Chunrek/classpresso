@@ -208,13 +208,15 @@ async function transformFile(
   mappings: ClassMapping[],
   config: ClasspressoConfig,
   dryRun: boolean,
-  dynamicBasePatterns: Map<string, DynamicBasePattern>
+  dynamicBasePatterns: Map<string, DynamicBasePattern>,
+  mergeablePatterns: Set<string>
 ): Promise<{ modified: boolean; replacements: number; skippedForHydration: number; error?: string }> {
   try {
     let content = await readFileContent(filePath);
     let totalReplacements = 0;
     let skippedForHydration = 0;
     const originalContent = content;
+    const isJS = isJSFile(filePath);
 
     for (const mapping of mappings) {
       // Skip patterns that would cause hydration mismatches
@@ -225,15 +227,21 @@ async function transformFile(
         // - JS has template literal: `px-4 py-2 ${dynamic}` (base pattern)
         // - Static JS may also have: "px-4 py-2 bg-blue" (same as HTML)
         // All must stay untransformed to match at hydration time
-        if (isSupersetOfDynamicBase(mapping.classes, dynamicBasePatterns)) {
-          skippedForHydration++;
-          continue;
-        }
+        const isSuperset = isSupersetOfDynamicBase(mapping.classes, dynamicBasePatterns);
+        const isExact = matchesDynamicBase(mapping.classes, dynamicBasePatterns);
 
-        if (matchesDynamicBase(mapping.classes, dynamicBasePatterns)) {
+        if (isSuperset || isExact) {
           skippedForHydration++;
           continue;
         }
+      }
+
+      // Skip mergeable patterns in JS files
+      // These are patterns that appear in JS as className props but get merged
+      // with component-internal classes in the HTML output
+      if (isJS && mergeablePatterns.has(mapping.original)) {
+        skippedForHydration++;
+        continue;
       }
 
       // Find all variations of this pattern in the file
@@ -280,8 +288,18 @@ export async function transformBuildOutput(
   mappings: ClassMapping[],
   config: ClasspressoConfig,
   dryRun: boolean = false,
-  dynamicBasePatterns: Map<string, DynamicBasePattern> = new Map()
+  dynamicBasePatterns: Map<string, DynamicBasePattern> = new Map(),
+  mergeablePatterns: Set<string> = new Set()
 ): Promise<TransformResult> {
+  if (config.verbose) {
+    if (dynamicBasePatterns.size > 0) {
+      console.log(`  ℹ Found ${dynamicBasePatterns.size} dynamic base patterns (template literals)`);
+    }
+    if (mergeablePatterns.size > 0) {
+      console.log(`  ℹ Found ${mergeablePatterns.size} mergeable patterns (className props)`);
+    }
+  }
+
   const patterns = config.include.length > 0 ? config.include : DEFAULT_PATTERNS;
   const files = await findFiles(config.buildDir, patterns);
 
@@ -296,7 +314,7 @@ export async function transformBuildOutput(
       continue;
     }
 
-    const result = await transformFile(filePath, mappings, config, dryRun, dynamicBasePatterns);
+    const result = await transformFile(filePath, mappings, config, dryRun, dynamicBasePatterns, mergeablePatterns);
 
     if (result.error) {
       errors.push(result.error);

@@ -9,6 +9,7 @@ import type {
   ScanResult,
   FileStats,
   DynamicBasePattern,
+  SourceFileType,
 } from '../types/index.js';
 import {
   findFiles,
@@ -20,6 +21,63 @@ import {
   DEFAULT_PATTERNS,
 } from '../utils/files.js';
 import { ALL_CLASS_PATTERNS, isDynamicClassString, extractDynamicBaseStrings } from '../utils/regex.js';
+
+/**
+ * Determine the source file type
+ */
+function getSourceFileType(filePath: string): SourceFileType {
+  if (isHTMLFile(filePath)) return 'html';
+  if (isRSCFile(filePath)) return 'rsc';
+  return 'js';
+}
+
+/**
+ * Check if pattern A's classes are a proper subset of pattern B's classes.
+ * A is a proper subset of B if all classes in A are in B, and B has more classes.
+ */
+export function isProperSubset(classesA: string[], classesB: string[]): boolean {
+  if (classesA.length >= classesB.length) return false;
+
+  const setB = new Set(classesB);
+  return classesA.every(cls => setB.has(cls));
+}
+
+/**
+ * Detect patterns that appear in JS but are subsets of HTML patterns.
+ * These are likely className props that get merged with component classes.
+ */
+export function detectMergeablePatterns(
+  occurrences: Map<string, ClassOccurrence>
+): Set<string> {
+  const mergeablePatterns = new Set<string>();
+
+  // Get all JS-only patterns and HTML patterns
+  const jsPatterns: ClassOccurrence[] = [];
+  const htmlPatterns: ClassOccurrence[] = [];
+
+  for (const [, occurrence] of occurrences) {
+    if (occurrence.sourceTypes.has('js')) {
+      jsPatterns.push(occurrence);
+    }
+    if (occurrence.sourceTypes.has('html') || occurrence.sourceTypes.has('rsc')) {
+      htmlPatterns.push(occurrence);
+    }
+  }
+
+  // For each JS pattern, check if it's a subset of any HTML pattern
+  for (const jsPattern of jsPatterns) {
+    for (const htmlPattern of htmlPatterns) {
+      if (isProperSubset(jsPattern.classes, htmlPattern.classes)) {
+        // This JS pattern's classes appear as part of a larger HTML pattern
+        // It's likely a className prop that gets merged
+        mergeablePatterns.add(jsPattern.normalizedKey);
+        break;
+      }
+    }
+  }
+
+  return mergeablePatterns;
+}
 
 /**
  * Check if any class in a list contains a dynamic library prefix.
@@ -222,6 +280,7 @@ export async function scanBuildOutput(
       }
 
       const classStrings = extractClassStrings(content, filePath);
+      const sourceType = getSourceFileType(filePath);
 
       for (const { classString, location } of classStrings) {
         const { normalized, classes, excludedClasses } = normalizeClassString(
@@ -245,6 +304,7 @@ export async function scanBuildOutput(
           const existing = occurrences.get(normalized)!;
           existing.count++;
           existing.locations.push(location);
+          existing.sourceTypes.add(sourceType);
         } else {
           occurrences.set(normalized, {
             classString,
@@ -253,6 +313,7 @@ export async function scanBuildOutput(
             locations: [location],
             classes,
             excludedClasses,
+            sourceTypes: new Set([sourceType]),
           });
         }
       }
@@ -261,10 +322,18 @@ export async function scanBuildOutput(
     }
   }
 
+  // Detect patterns that are likely className props that get merged
+  const mergeablePatterns = detectMergeablePatterns(occurrences);
+
+  if (config.verbose && mergeablePatterns.size > 0) {
+    console.log(`Found ${mergeablePatterns.size} patterns that appear to be merged className props`);
+  }
+
   return {
     occurrences,
     files: fileStats,
     errors,
     dynamicBasePatterns,
+    mergeablePatterns,
   };
 }

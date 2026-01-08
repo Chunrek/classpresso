@@ -39,6 +39,9 @@ export interface FileLocation {
   column?: number;
 }
 
+// Source file type for pattern tracking
+export type SourceFileType = 'js' | 'html' | 'rsc';
+
 // Class occurrence tracking
 export interface ClassOccurrence {
   classString: string;
@@ -47,6 +50,8 @@ export interface ClassOccurrence {
   locations: FileLocation[];
   classes: string[];
   excludedClasses: string[];
+  /** Which file types this pattern appears in */
+  sourceTypes: Set<SourceFileType>;
 }
 
 // Consolidation candidate
@@ -143,6 +148,8 @@ export interface ScanResult {
   errors: string[];
   /** Dynamic base patterns from JS template literals (className:`base ${dynamic}`) */
   dynamicBasePatterns: Map<string, DynamicBasePattern>;
+  /** Patterns that appear in JS as subsets of HTML patterns (likely props that get merged) */
+  mergeablePatterns: Set<string>;
 }
 
 // Transform result

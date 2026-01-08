@@ -132,3 +132,45 @@ export function isHTMLFile(filePath: string): boolean {
 export function isRSCFile(filePath: string): boolean {
   return /\.rsc$/.test(filePath);
 }
+
+/**
+ * Check if a file matches any exclusion pattern
+ * Patterns can be glob-style (e.g., "**\/Demo*", "**\/ClassTester*")
+ */
+export function shouldExcludeFile(filePath: string, excludePatterns: string[]): boolean {
+  if (!excludePatterns || excludePatterns.length === 0) {
+    return false;
+  }
+
+  // Normalize path for consistent matching
+  const normalizedPath = filePath.replace(/\\/g, '/');
+
+  for (const pattern of excludePatterns) {
+    // Convert glob pattern to regex
+    // Support: ** (any path), * (any chars), ? (single char)
+    const regexPattern = pattern
+      .replace(/\\/g, '/')
+      .replace(/\*\*/g, '{{DOUBLESTAR}}')
+      .replace(/\*/g, '[^/]*')
+      .replace(/\?/g, '.')
+      .replace(/{{DOUBLESTAR}}/g, '.*');
+
+    const regex = new RegExp(regexPattern);
+    if (regex.test(normalizedPath)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Filter files to exclude those matching exclusion patterns
+ */
+export function filterExcludedFiles(files: string[], excludePatterns: string[]): string[] {
+  if (!excludePatterns || excludePatterns.length === 0) {
+    return files;
+  }
+
+  return files.filter(filePath => !shouldExcludeFile(filePath, excludePatterns));
+}

@@ -12,6 +12,7 @@ import {
   isHTMLFile,
   isRSCFile,
   DEFAULT_PATTERNS,
+  filterExcludedFiles,
 } from '../utils/files.js';
 import { escapeRegex } from '../utils/regex.js';
 import { normalizeClassString } from './scanner.js';
@@ -301,7 +302,14 @@ export async function transformBuildOutput(
   }
 
   const patterns = config.include.length > 0 ? config.include : DEFAULT_PATTERNS;
-  const files = await findFiles(config.buildDir, patterns);
+  const allFiles = await findFiles(config.buildDir, patterns);
+
+  // Filter out excluded files
+  const files = filterExcludedFiles(allFiles, config.exclude.files || []);
+
+  if (config.verbose && allFiles.length !== files.length) {
+    console.log(`  ℹ Excluded ${allFiles.length - files.length} files from transformation`);
+  }
 
   let filesModified = 0;
   let totalBytesChanged = 0;

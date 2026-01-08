@@ -41,6 +41,7 @@ export const DEFAULT_CONFIG: ClasspressoConfig = {
     suffixes: ['-handler', '-trigger'],
     classes: [],
     patterns: [/^qa-/, /^test-/, /^e2e-/],
+    files: [],
   },
   include: [],
   cssLayer: false,
@@ -121,6 +122,10 @@ function mergeConfig(
       patterns: [
         ...(defaults.exclude.patterns || []),
         ...(userConfig.exclude?.patterns || []),
+      ],
+      files: [
+        ...(defaults.exclude.files || []),
+        ...(userConfig.exclude?.files || []),
       ],
     },
     // Merge dynamicPrefixes arrays

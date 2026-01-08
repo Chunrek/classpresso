@@ -19,6 +19,7 @@ import {
   isHTMLFile,
   isRSCFile,
   DEFAULT_PATTERNS,
+  filterExcludedFiles,
 } from '../utils/files.js';
 import { ALL_CLASS_PATTERNS, isDynamicClassString, extractDynamicBaseStrings } from '../utils/regex.js';
 
@@ -234,10 +235,13 @@ export async function scanBuildOutput(
 
   // Find all files to scan
   const patterns = config.include.length > 0 ? config.include : DEFAULT_PATTERNS;
-  const files = await findFiles(config.buildDir, patterns);
+  const allFiles = await findFiles(config.buildDir, patterns);
+
+  // Filter out excluded files
+  const files = filterExcludedFiles(allFiles, config.exclude.files || []);
 
   if (config.verbose) {
-    console.log(`Found ${files.length} files to scan`);
+    console.log(`Found ${allFiles.length} files, scanning ${files.length} (${allFiles.length - files.length} excluded)`);
   }
 
   for (const filePath of files) {

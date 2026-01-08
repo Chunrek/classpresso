@@ -8,6 +8,8 @@ export interface ExcludeConfig {
   suffixes?: string[];
   classes?: string[];
   patterns?: RegExp[];
+  /** Glob patterns for files to exclude from scanning/transformation */
+  files?: string[];
 }
 
 export interface ClasspressoConfig {

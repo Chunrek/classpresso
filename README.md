@@ -99,15 +99,39 @@ npx classpresso optimize
 
 ### Build Frameworks
 
-| Framework | Build Directory | SSR Flag |
-|-----------|-----------------|----------|
-| Next.js | `.next` (default) | `--ssr` for App Router |
-| Astro | `dist` | `--ssr` for SSR/Hybrid with islands |
-| Vite | `dist` | Depends on framework |
-| Create React App | `build` | Not needed |
-| Remix | `build` | `--ssr` recommended |
+Classpresso works with **20+ frameworks** out of the box:
 
-**Zero code changes required.** Classpresso runs on your build output. Your React, Vue, Svelte, Astro, or vanilla HTML stays exactly the same.
+| Framework | Build Directory | SSR Flag | Notes |
+|-----------|-----------------|----------|-------|
+| **React Meta-Frameworks** |
+| Next.js | `.next` (default) | `--ssr` for App Router | Pages Router usually doesn't need SSR flag |
+| Remix | `build` | `--ssr` recommended | |
+| Gatsby | `public` | Not needed | Static only |
+| RedwoodJS | `web/dist` | `--ssr` if using SSR | |
+| **Vue Meta-Frameworks** |
+| Nuxt 3 | `.output` | `--ssr` recommended | |
+| VitePress | `.vitepress/dist` | Not needed | Static docs |
+| Gridsome | `dist` | Not needed | Static only |
+| **Svelte** |
+| SvelteKit | `build` | `--ssr` recommended | Or `.svelte-kit` |
+| **Other Frameworks** |
+| Astro | `dist` | `--ssr` for islands | Static doesn't need SSR |
+| Solid Start | `.output` or `dist` | `--ssr` recommended | |
+| Qwik | `dist` | `--ssr` recommended | |
+| Angular | `dist/[project-name]` | Not needed | Angular 17+ uses `browser/` subdir |
+| Ember | `dist` | Not needed | |
+| Preact | `build` or `dist` | Depends on setup | |
+| **Generic Bundlers** |
+| Vite | `dist` | Depends on framework | |
+| Webpack | `dist` | Not needed | |
+| Parcel | `dist` | Not needed | |
+| Create React App | `build` | Not needed | |
+| **Static Site Generators** |
+| Eleventy (11ty) | `_site` | Not needed | |
+| Hugo | `public` | Not needed | |
+| Docusaurus | `build` | Not needed | |
+
+**Zero code changes required.** Classpresso runs on your build output. Your React, Vue, Svelte, Solid, Qwik, Astro, Angular, or vanilla HTML stays exactly the same.
 
 ## How It Works
 
@@ -262,6 +286,114 @@ Classpresso automatically detects Astro's build structure:
 - `dist/server/**/*.mjs` - Server code (SSR mode)
 - `dist/client/_astro/**/*` - Client assets (SSR mode)
 
+### Nuxt 3
+
+```json
+{
+  "scripts": {
+    "build": "nuxt build && classpresso optimize --dir .output --ssr"
+  }
+}
+```
+
+### SvelteKit
+
+```json
+{
+  "scripts": {
+    "build": "vite build && classpresso optimize --dir build --ssr"
+  }
+}
+```
+
+### Remix
+
+```json
+{
+  "scripts": {
+    "build": "remix build && classpresso optimize --dir build --ssr"
+  }
+}
+```
+
+### Solid Start
+
+```json
+{
+  "scripts": {
+    "build": "vinxi build && classpresso optimize --dir .output --ssr"
+  }
+}
+```
+
+### Qwik
+
+```json
+{
+  "scripts": {
+    "build": "qwik build && classpresso optimize --dir dist --ssr"
+  }
+}
+```
+
+### Angular
+
+```json
+{
+  "scripts": {
+    "build": "ng build && classpresso optimize --dir dist/my-app"
+  }
+}
+```
+
+For Angular 17+, the output is in `dist/[project-name]/browser`.
+
+### Gatsby
+
+```json
+{
+  "scripts": {
+    "build": "gatsby build && classpresso optimize --dir public"
+  }
+}
+```
+
+### Eleventy (11ty)
+
+```json
+{
+  "scripts": {
+    "build": "eleventy && classpresso optimize --dir _site"
+  }
+}
+```
+
+### Hugo
+
+```bash
+hugo && classpresso optimize --dir public
+```
+
+### Docusaurus
+
+```json
+{
+  "scripts": {
+    "build": "docusaurus build && classpresso optimize --dir build"
+  }
+}
+```
+
+### VitePress
+
+```json
+{
+  "scripts": {
+    "build": "vitepress build && classpresso optimize --dir .vitepress/dist"
+  }
+}
+```
+
 ## SSR-Safe Mode
 
 For **Next.js App Router**, **Remix**, or any SSR framework with hydration, use the `--ssr` flag to prevent hydration mismatches:
@@ -280,12 +412,27 @@ SSR-safe mode only consolidates patterns that appear in **both** server-rendered
 
 ### When to use
 
+**Use `--ssr` for these frameworks:**
 - **Next.js App Router** - Always recommended
-- **Next.js Pages Router** - Usually not needed (different hydration model)
+- **Nuxt 3** - Recommended
+- **SvelteKit** - Recommended
 - **Remix** - Recommended
-- **Astro SSR/Hybrid** - Recommended if using `client:*` directives with React/Vue/Svelte islands
-- **Astro Static** - Not needed (no hydration)
-- **Static sites (plain HTML)** - Not needed
+- **Solid Start** - Recommended
+- **Qwik** - Recommended
+- **Astro SSR/Hybrid** - If using `client:*` directives with React/Vue/Svelte islands
+- **RedwoodJS** - If using SSR features
+
+**SSR flag NOT needed:**
+- **Next.js Pages Router** - Different hydration model
+- **Astro Static** - No hydration
+- **Gatsby** - Static generation
+- **Eleventy (11ty)** - Static only
+- **Hugo** - Static only
+- **VitePress** - Static docs
+- **Docusaurus** - Static docs
+- **Angular** - Client-side rendering
+- **Ember** - Client-side rendering
+- **Static sites (plain HTML)** - No hydration
 
 ### Configuration
 

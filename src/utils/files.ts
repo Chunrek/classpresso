@@ -9,6 +9,28 @@ import type { FileStats } from '../types/index.js';
 
 /**
  * Default file patterns to scan in build output
+ *
+ * These patterns support all major frameworks when pointing to their build directories:
+ * - Next.js: --dir .next
+ * - Astro: --dir dist
+ * - Nuxt: --dir .output
+ * - SvelteKit: --dir build (or .svelte-kit)
+ * - Remix: --dir build
+ * - Solid Start: --dir .output (or dist)
+ * - Qwik: --dir dist
+ * - Angular: --dir dist/[project-name]
+ * - Gatsby: --dir public
+ * - Vite/Vue/React: --dir dist
+ * - Ember: --dir dist
+ * - VitePress: --dir .vitepress/dist
+ * - Docusaurus: --dir build
+ * - Eleventy (11ty): --dir _site
+ * - Hugo: --dir public
+ * - Parcel: --dir dist
+ * - Preact: --dir build (or dist)
+ * - Gridsome: --dir dist
+ * - RedwoodJS: --dir web/dist
+ * - Webpack: --dir dist
  */
 export const DEFAULT_PATTERNS = [
   // === Next.js (.next directory) ===
@@ -27,21 +49,124 @@ export const DEFAULT_PATTERNS = [
   'standalone/.next/server/app/**/*.js',
   'standalone/.next/server/app/**/*.html',
   'standalone/.next/server/app/**/*.rsc',
-  // Standalone server chunks (Client Components)
   'standalone/.next/server/chunks/**/*.js',
 
-  // === Astro (dist directory) ===
-  // Static build - HTML pages
+  // === Nuxt (.output directory) ===
+  'public/**/*.html',
+  'public/**/*.js',
+  'public/**/*.css',
+  'public/_nuxt/**/*.js',
+  'public/_nuxt/**/*.css',
+  'server/**/*.mjs',
+  'server/chunks/**/*.mjs',
+
+  // === SvelteKit (build directory) ===
+  // Static adapter output
   '**/*.html',
-  // Static build - Bundled assets
+  '_app/**/*.js',
+  '_app/**/*.css',
+  // Node adapter output
+  'client/**/*.js',
+  'client/**/*.css',
+  'server/**/*.js',
+
+  // === Astro (dist directory) ===
   '_astro/**/*.js',
   '_astro/**/*.css',
   // SSR/Hybrid build - Client assets
   'client/_astro/**/*.js',
   'client/_astro/**/*.css',
-  // SSR/Hybrid build - Server code
-  'server/**/*.mjs',
-  'server/chunks/**/*.mjs',
+
+  // === Remix (build directory) ===
+  'client/**/*.js',
+  'client/**/*.css',
+  'server/**/*.js',
+
+  // === Solid Start (.output or dist directory) ===
+  'public/**/*.html',
+  'public/**/*.js',
+  'public/**/*.css',
+  '_build/**/*.js',
+  '_build/**/*.css',
+
+  // === Qwik (dist directory) ===
+  'build/**/*.js',
+  'build/**/*.css',
+  'q-*.js',
+
+  // === Angular (dist/[project] directory) ===
+  // Angular 17+ uses browser subdirectory
+  'browser/**/*.js',
+  'browser/**/*.css',
+  'browser/**/*.html',
+  // Legacy Angular output
+  '*.js',
+  '*.css',
+  '*.html',
+
+  // === Gatsby (public directory) ===
+  'page-data/**/*.json',
+  '*.js',
+  '*.css',
+  '*.html',
+
+  // === Vite/Vue/React generic (dist directory) ===
+  'assets/**/*.js',
+  'assets/**/*.css',
+  'index.html',
+
+  // === Ember (dist directory) ===
+  'assets/**/*.js',
+  'assets/**/*.css',
+  '*.html',
+
+  // === VitePress (.vitepress/dist directory) ===
+  'assets/**/*.js',
+  'assets/**/*.css',
+  '**/*.html',
+
+  // === Docusaurus (build directory) ===
+  'assets/**/*.js',
+  'assets/**/*.css',
+  '**/*.html',
+
+  // === Eleventy/11ty (_site directory) ===
+  '**/*.html',
+  '**/*.js',
+  '**/*.css',
+
+  // === Hugo (public directory) ===
+  '**/*.html',
+  '**/*.js',
+  '**/*.css',
+
+  // === Parcel (dist directory) ===
+  '*.html',
+  '*.js',
+  '*.css',
+
+  // === Preact (build directory) ===
+  'bundle.js',
+  'bundle.*.js',
+  '*.css',
+  '*.html',
+
+  // === Gridsome (dist directory) ===
+  'assets/**/*.js',
+  'assets/**/*.css',
+  '**/*.html',
+
+  // === RedwoodJS (web/dist directory) ===
+  'static/**/*.js',
+  'static/**/*.css',
+  '*.html',
+
+  // === Webpack generic (dist directory) ===
+  '*.js',
+  '*.css',
+  '*.html',
+  'js/**/*.js',
+  'css/**/*.css',
 ];
 
 /**

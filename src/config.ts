@@ -57,6 +57,17 @@ export const DEFAULT_CONFIG: ClasspressoConfig = {
   debug: false,
   sendErrorReports: false,
   errorReportUrl: undefined,
+  purgeUnusedCSS: false,
+  purgeSafelist: [
+    /^js-/,      // JavaScript hooks
+    /^data-/,    // Data attributes used as classes
+    /^is-/,      // State classes
+    /^has-/,     // State classes
+    /^active$/,
+    /^disabled$/,
+    /^hidden$/,
+    /^visible$/,
+  ],
 };
 
 /**
@@ -136,6 +147,11 @@ function mergeConfig(
     dynamicPrefixes: [
       ...(defaults.dynamicPrefixes || []),
       ...(userConfig.dynamicPrefixes || []),
+    ],
+    // Merge purgeSafelist arrays
+    purgeSafelist: [
+      ...(defaults.purgeSafelist || []),
+      ...(userConfig.purgeSafelist || []),
     ],
   };
 }

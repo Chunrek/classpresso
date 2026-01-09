@@ -46,6 +46,10 @@ export interface ClasspressoConfig {
   sendErrorReports: boolean;
   /** URL to send error reports to (required if sendErrorReports is true) */
   errorReportUrl?: string;
+  /** Enable CSS purging of unused utility classes after consolidation (default: false) */
+  purgeUnusedCSS: boolean;
+  /** Safelist of class patterns to never purge */
+  purgeSafelist?: (string | RegExp)[];
 }
 
 // File location tracking
@@ -172,5 +176,21 @@ export interface ScanResult {
 export interface TransformResult {
   filesModified: number;
   bytesChanged: number;
+  errors: string[];
+}
+
+// CSS Purge result
+export interface PurgeResult {
+  /** Total CSS files processed */
+  filesProcessed: number;
+  /** Number of CSS rules removed */
+  rulesRemoved: number;
+  /** Class names that were purged */
+  purgedClasses: string[];
+  /** Bytes saved from purging */
+  bytesSaved: number;
+  /** Classes that were kept (still in use) */
+  keptClasses: string[];
+  /** Errors encountered during purging */
   errors: string[];
 }

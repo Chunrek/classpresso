@@ -9,6 +9,7 @@ import { detectConsolidatablePatterns } from '../core/pattern-detector.js';
 import { createClassMappings, saveMappingManifest } from '../core/consolidator.js';
 import { generateConsolidatedCSS, injectConsolidatedCSS } from '../core/css-generator.js';
 import { transformBuildOutput } from '../core/transformer.js';
+import { purgeUnusedCSS } from '../core/css-purger.js';
 import { calculateMetrics, estimateCSSOverhead, formatBytes, formatPercentage, formatTime } from '../core/metrics.js';
 import { loadConfig } from '../config.js';
 import { createLogger } from '../utils/logger.js';
@@ -22,6 +23,7 @@ interface OptimizeOptions {
   dryRun?: boolean;
   backup?: boolean;
   manifest?: boolean;
+  purgeUnused?: boolean;
   verbose?: boolean;
   debug?: boolean;
   sendErrorReports?: boolean;
@@ -41,6 +43,7 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
   config.debug = options.debug || config.debug || false;
   config.sendErrorReports = options.sendErrorReports || config.sendErrorReports || false;
   config.errorReportUrl = options.errorReportUrl || config.errorReportUrl;
+  config.purgeUnusedCSS = options.purgeUnused || config.purgeUnusedCSS || false;
 
   const dryRun = options.dryRun || false;
 
@@ -159,7 +162,29 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
       console.log(chalk.green(`  ✓ Injected into ${cssFile}\n`));
     }
 
-    // Step 7: Calculate metrics
+    // Step 7: Purge unused CSS (if enabled and not dry run)
+    let purgeBytesSaved = 0;
+    if (config.purgeUnusedCSS && !dryRun) {
+      console.log(chalk.gray('Purging unused CSS...'));
+      const purgeStartTime = Date.now();
+      await logger.logStep('Purging unused CSS');
+      const purgeResult = await purgeUnusedCSS(config.buildDir, mappings, config);
+      await logger.logTiming('CSS purge', Date.now() - purgeStartTime);
+      await logger.logStep('CSS purge complete', {
+        rulesRemoved: purgeResult.rulesRemoved,
+        bytesSaved: purgeResult.bytesSaved,
+      });
+      purgeBytesSaved = purgeResult.bytesSaved;
+      console.log(chalk.green(`  ✓ Purged ${purgeResult.rulesRemoved} unused CSS rules (${formatBytes(purgeResult.bytesSaved)} saved)\n`));
+
+      if (purgeResult.errors.length > 0 && config.verbose) {
+        for (const error of purgeResult.errors) {
+          console.log(chalk.yellow(`  ⚠ ${error}`));
+        }
+      }
+    }
+
+    // Step 8: Calculate metrics
     await logger.logStep('Calculating metrics');
     const cssOverhead = estimateCSSOverhead(candidates);
     const metrics = calculateMetrics(candidates, scanResult.files, transformResult, cssOverhead);
@@ -168,7 +193,7 @@ export async function optimizeCommand(options: OptimizeOptions): Promise<void> {
       percentageReduction: metrics.percentageReduction,
     });
 
-    // Step 8: Save manifest (if not dry run and manifest enabled)
+    // Step 9: Save manifest (if not dry run and manifest enabled)
     if (!dryRun && config.manifest) {
       console.log(chalk.gray('Saving manifest...'));
       await logger.logStep('Saving manifest');

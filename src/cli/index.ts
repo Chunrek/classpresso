@@ -38,6 +38,7 @@ program
   .option('--dry-run', 'Show what would be done without making changes')
   .option('--backup', 'Create backup before modifying')
   .option('--no-manifest', 'Do not generate manifest file')
+  .option('--purge-unused', 'Remove unused CSS classes after consolidation')
   .option('-v, --verbose', 'Verbose output')
   .option('--debug', 'Enable debug mode (generates detailed log file)')
   .option('--send-error-reports', 'Send error reports to configured webhook')

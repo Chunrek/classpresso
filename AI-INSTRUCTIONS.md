@@ -494,9 +494,58 @@ npx classpresso optimize --dir dist
 # SSR-safe mode
 npx classpresso optimize --dir .next --ssr
 
+# Purge unused CSS (DANGEROUS - see below)
+npx classpresso optimize --dir dist --purge-unused
+
 # Verbose output
 npx classpresso optimize --dir dist --verbose
 
 # Generate debug log
 npx classpresso optimize --dir dist --debug
 ```
+
+## Dangerous Settings
+
+### `--purge-unused` (CSS Purge)
+
+**CAUTION: This is a destructive operation.**
+
+The `--purge-unused` flag removes CSS rules for utility classes that are no longer referenced in HTML/JS after consolidation.
+
+**How it works:**
+1. After consolidation, patterns like `"flex items-center"` become `"cp-a"`
+2. The original `.flex` and `.items-center` CSS rules may now be unused
+3. Purge scans HTML/JS to find which classes are still referenced
+4. CSS rules for unreferenced classes are permanently deleted
+
+**When to use:**
+- Production builds where every byte matters
+- After thorough testing confirms the site still works
+- When you're confident all class references are static (not dynamically generated)
+
+**When NOT to use:**
+- During development
+- When you have dynamic class names (e.g., `className={isActive ? 'active' : 'inactive'}`)
+- When JavaScript generates class names at runtime
+- First-time optimization (test without purge first)
+
+**Safelist:** Some classes are protected from purging:
+- `js-*`, `data-*` - JavaScript hooks
+- `is-*`, `has-*` - State classes
+- `active`, `disabled`, `hidden`, `visible`
+- Responsive variants (`sm:`, `md:`, etc.)
+- State variants (`hover:`, `focus:`, etc.)
+
+**Config:**
+```js
+// classpresso.config.js
+module.exports = {
+  purgeUnusedCSS: true,  // Enable purging
+  purgeSafelist: [       // Additional classes to protect
+    /^my-dynamic-/,
+    'never-purge-this',
+  ],
+}
+```
+
+**Recovery:** If purging breaks your site, rebuild your project (the source is unchanged) and run classpresso without `--purge-unused`.

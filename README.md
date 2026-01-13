@@ -4,6 +4,10 @@
 
 Classpresso consolidates repeated utility class patterns at build time, dramatically reducing browser rendering work. Works with Tailwind, Bootstrap, Bulma, Tachyons, UnoCSS, and any utility-first CSS framework.
 
+> **📦 Post-Build Tool — Your Development Workflow is Unchanged**
+>
+> Classpresso runs **after** your build (`npm run build`), not during development. Your source code is never modified — only the compiled output in `.next`, `dist`, `build`, etc. You'll always see your normal Tailwind/utility classes while developing and debugging.
+
 ## Performance Results
 
 | Metric | Improvement |
@@ -623,6 +627,10 @@ async function optimize() {
 ```
 
 ## FAQ
+
+**Does this affect my development workflow?**
+
+No. Classpresso is a **post-build** tool that only runs after `npm run build`. During development (`npm run dev`), you see your normal Tailwind/utility classes exactly as you wrote them — perfect for debugging and toggling classes in DevTools. Classpresso only transforms the compiled production output.
 
 **Why does this make sites faster?**
 

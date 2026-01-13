@@ -655,5 +655,5 @@ MIT
 ## Links
 
 - Website: [https://classpresso.com](https://classpresso.com?utm_source=github&utm_medium=referral&utm_campaign=github-readme)
-- GitHub: [https://github.com/timclausendev-web/classpresso](https://github.com/timclausendev-web/classpresso)
+- GitHub: [https://github.com/TheDecipherist/classpresso](https://github.com/TheDecipherist/classpresso)
 - npm: [https://www.npmjs.com/package/classpresso](https://www.npmjs.com/package/classpresso)

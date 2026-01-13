@@ -64,7 +64,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/timclausendev-web/classpresso"
+    "url": "https://github.com/TheDecipherist/classpresso"
   },
   "homepage": "https://classpresso.com",
   "dependencies": {

